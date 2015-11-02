@@ -10,3 +10,4 @@ int main()
 	vector<Matrix> matrix = GetVector();
 	PrintMatrix(matrix);
 	return 0;
+}

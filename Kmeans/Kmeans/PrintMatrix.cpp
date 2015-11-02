@@ -4,7 +4,7 @@
 #include "printMatrix.h"
 
 
-const int sizeOfArray = 3500;
+const int sizeOfArray = 1000;
 
 void PrintMatrix(std::vector<Matrix> imput)
 {
@@ -12,14 +12,13 @@ void PrintMatrix(std::vector<Matrix> imput)
 	myfile.open("example.txt");
 	myfile << "P1\n";
 	myfile << sizeOfArray << " " << sizeOfArray << "\n";
-	//std::vector<Matrix>::iterator it = imput.begin();
-	int position = 0;;
+	int position = 0;
 	for (int i = 0; i < sizeOfArray; i++)
 	{
 		int test = 0;
 		for (int j = 0; j < sizeOfArray; j++)
 		{
-			if (imput[position].n_row == j && imput[position].n_col == i)
+			if (imput[position].n_row == i && imput[position].n_col == j)
 			{
 				myfile << "1 ";
 				position++;
