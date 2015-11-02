@@ -4,4 +4,5 @@
 #endif 
 #include <vector>
 
-void PrintMatrix(std::vector<Matrix> imput);
+void PrintMatrix(std::vector<Matrix> input);
+void DynamicPrintMatrix(std::vector<Matrix> input, int row, int col);

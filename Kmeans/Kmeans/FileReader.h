@@ -5,3 +5,4 @@
 #include <vector>
 
 std::vector<Matrix> GetVector();
+void GetRowandColumn(int &row, int &column, std::vector<Matrix> mat);

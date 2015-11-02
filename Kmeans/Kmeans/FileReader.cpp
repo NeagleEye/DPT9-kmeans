@@ -30,4 +30,15 @@ std::vector<Matrix> GetVector()
 	return result;
 }
 
+void GetRowandColumn(int &row, int &column, std::vector<Matrix> mat)
+{
+	for (int i = 0; i < mat.size(); i++)
+	{
+		if (mat[i].n_row > row)
+			row = mat[i].n_row;
+		if (mat[i].n_col > column)
+			column = mat[i].n_col;
+	}
+}
+
  
