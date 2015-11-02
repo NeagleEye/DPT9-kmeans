@@ -6,7 +6,7 @@
 
 const int sizeOfArray = 1000;
 
-void PrintMatrix(std::vector<Matrix> imput)
+void PrintMatrix(std::vector<Matrix> input)
 {
 	std::ofstream myfile;
 	myfile.open("example.txt");
@@ -18,7 +18,35 @@ void PrintMatrix(std::vector<Matrix> imput)
 		int test = 0;
 		for (int j = 0; j < sizeOfArray; j++)
 		{
-			if (imput[position].n_row == i && imput[position].n_col == j)
+			if (input[position].n_row == i && input[position].n_col == j)
+			{
+				myfile << "1 ";
+				position++;
+			}
+			else
+			{
+				myfile << "0 ";
+			}
+		}
+		myfile << "\n";
+	}
+	myfile.close();
+
+}
+
+void DynamicPrintMatrix(std::vector<Matrix> input, int row,int col)
+{
+	std::ofstream myfile;
+	myfile.open("example.txt");
+	myfile << "P1\n";
+	myfile << row << " " << col << "\n";
+	int position = 0;
+	for (int i = 0; i < row; i++)
+	{
+		int test = 0;
+		for (int j = 0; j < col; j++)
+		{
+			if (input[position].n_row == i && input[position].n_col == j)
 			{
 				myfile << "1 ";
 				position++;
