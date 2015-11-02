@@ -10,7 +10,7 @@
 *
 */
 
-std::vector<Matrix> GetVector()
+std::vector<Matrix> GetVector(int &row, int &col)
 {
 	std::vector<Matrix> result;
 	std::string line;
@@ -23,22 +23,14 @@ std::vector<Matrix> GetVector()
 			std::istringstream iss(line);
 			iss >> tempResult.n_row >> tempResult.n_col >> tempResult.value;
 			result.push_back(tempResult);
+			//To get row and col
+			if (tempResult.n_row > row)
+				row = tempResult.n_row;
+			if (tempResult.n_col > col)
+				col = tempResult.n_col;
 		}
 		myfile.close();
 	}
 
 	return result;
 }
-
-void GetRowandColumn(int &row, int &column, std::vector<Matrix> mat)
-{
-	for (int i = 0; i < mat.size(); i++)
-	{
-		if (mat[i].n_row > row)
-			row = mat[i].n_row;
-		if (mat[i].n_col > column)
-			column = mat[i].n_col;
-	}
-}
-
- 
