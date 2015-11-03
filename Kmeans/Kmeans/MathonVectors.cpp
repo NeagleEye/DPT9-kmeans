@@ -1,5 +1,6 @@
 #include "MathonVectors.h"
 
+//average vector over all row elements
 void average_vec(double vec[], int n, int num)
 {
 	int i;
@@ -7,6 +8,7 @@ void average_vec(double vec[], int n, int num)
 		vec[i] = vec[i] / num;
 }
 
+//compute the normal vector over the values in the row elements.
 double norm_2(double vec[], int n)
 //compute squared L2 norm of vec
 {

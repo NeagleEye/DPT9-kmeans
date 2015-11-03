@@ -122,12 +122,12 @@ void Kmeans::General_K_Means(Matrix matrix)
 			k = 0;
 			for (i = 0; i < col; i++)
 			{
-				while (i<empty_Docs_ID[k])
-				{
+				//while (i<empty_Docs_ID[k])
+				//{
 					cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
 					i++;
-				}
-				k++;
+				//}
+				//k++;
 			}
 			result = Coherence(n_Clusters);
 			/*if (dumpswitch)
@@ -174,65 +174,55 @@ int Kmeans::Assign_Cluster(Matrix matrix, bool simi_est)
 
 		for (i = 0; i < col; i++)
 		{
-			while (i<empty_Docs_ID[k])
-			{
-				temp_sim = sim_Mat[cluster[i]][i];
-				temp_Cluster_ID = cluster[i];
+			temp_sim = sim_Mat[cluster[i]][i];
+			temp_Cluster_ID = cluster[i];
 
-				for (j = 0; j < n_Clusters; j++)
-					if (j != cluster[i])
-					{
-						if (sim_Mat[j][i] < temp_sim)
-						{
-							multi++;
-							sim_Mat[j][i] = matrix.Euc_Dis(concept_Vectors[j], i, normal_ConceptVectors[j]);
-							if (sim_Mat[j][i] < temp_sim)
-							{
-								temp_sim = sim_Mat[j][i];
-								temp_Cluster_ID = j;
-							}
-						}
-					}
-
-				if (temp_Cluster_ID != cluster[i])
+			for (j = 0; j < n_Clusters; j++)
+				if (j != cluster[i])
 				{
-					cluster[i] = temp_Cluster_ID;
-					sim_Mat[cluster[i]][i] = temp_sim;
-					changed++;
-				}
-				i++;
-			}
-			k++;
-		}
-	}
-	else
-	{
-		for (i = 0; i < col; i++)
-		{
-			while (i<empty_Docs_ID[k])
-			{
-				temp_sim = sim_Mat[cluster[i]][i];
-				temp_Cluster_ID = cluster[i];
-
-				for (j = 0; j < n_Clusters; j++)
-					if (j != cluster[i])
+					if (sim_Mat[j][i] < temp_sim)
 					{
 						multi++;
+						sim_Mat[j][i] = matrix.Euc_Dis(concept_Vectors[j], i, normal_ConceptVectors[j]);
 						if (sim_Mat[j][i] < temp_sim)
 						{
 							temp_sim = sim_Mat[j][i];
 							temp_Cluster_ID = j;
 						}
 					}
-				if (temp_Cluster_ID != cluster[i])
-				{
-					cluster[i] = temp_Cluster_ID;
-					sim_Mat[cluster[i]][i] = temp_sim;
-					changed++;
 				}
-				i++;
+
+			if (temp_Cluster_ID != cluster[i])
+			{
+				cluster[i] = temp_Cluster_ID;
+				sim_Mat[cluster[i]][i] = temp_sim;
+				changed++;
 			}
-			k++;
+		}
+	}
+	else
+	{
+		for (i = 0; i < col; i++)
+		{
+			temp_sim = sim_Mat[cluster[i]][i];
+			temp_Cluster_ID = cluster[i];
+
+			for (j = 0; j < n_Clusters; j++)
+				if (j != cluster[i])
+				{
+					multi++;
+					if (sim_Mat[j][i] < temp_sim)
+					{
+						temp_sim = sim_Mat[j][i];
+						temp_Cluster_ID = j;
+					}
+				}
+			if (temp_Cluster_ID != cluster[i])
+			{
+				cluster[i] = temp_Cluster_ID;
+				sim_Mat[cluster[i]][i] = temp_sim;
+				changed++;
+			}
 		}
 	}
 	/*if (dumpswitch)
@@ -279,12 +269,7 @@ void Kmeans::Initialize_CV(Matrix matrix)
 	k = 0;
 	for (i = 0; i < col; i++)
 	{
-		while (i<empty_Docs_ID[k])
-		{
-			cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
-			i++;
-		}
-		k++;
+		cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
 	}
 	//for (i = 0; i < n_Clusters; i++)
 	//diff[i] = 0.0;
@@ -336,8 +321,9 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 
 	for (i = 0; i< col; i++)
 		mark[i] = false;
-	for (i = 0; i< n_Empty_Docs; i++)
-		mark[empty_Docs_ID[i]] = true;
+
+	//for (i = 0; i< n_Empty_Docs; i++)
+		//mark[empty_Docs_ID[i]] = true;
 
 	for (i = 0; i < n_Clusters; i++)
 		for (j = 0; j < row; j++)
@@ -446,20 +432,14 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 void Kmeans::Update_Centroids(Matrix matrix)
 {
 
-	int i, j, k;
+	int i, j;
 
 	for (i = 0; i < n_Clusters; i++)
 		for (j = 0; j < row; j++)
 			concept_Vectors[i][j] = 0.0;
-	k = 0;
 	for (i = 0; i < col; i++)
 	{
-		while (i<empty_Docs_ID[k])
-		{
-			matrix.Ith_Add_CV(i, concept_Vectors[cluster[i]]);
-			i++;
-		}
-		k++;
+		matrix.Ith_Add_CV(i, concept_Vectors[cluster[i]]);
 	}
 }
 
@@ -473,12 +453,7 @@ void Kmeans::Compute_Cluster_Size()
 		clusterSize[i] = 0;
 	for (i = 0; i < col; i++)
 	{
-		while (i<empty_Docs_ID[k])
-		{
-			clusterSize[cluster[i]]++;
-			i++;
-		}
-		k++;
+		clusterSize[cluster[i]]++;
 	}
 }
 
@@ -517,11 +492,6 @@ void Kmeans::Update_Quality_Change_Mat(Matrix matrix, int c_ID)
 
 	for (i = 0; i < col; i++)
 	{
-		while (i<empty_Docs_ID[k])
-		{
-			quality_change_mat[c_ID][i] = Delta_X(matrix, i, c_ID);
-			i++;
-		}
-		k++;
+		quality_change_mat[c_ID][i] = Delta_X(matrix, i, c_ID);
 	}
 }
