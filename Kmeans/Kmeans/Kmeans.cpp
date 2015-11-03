@@ -135,6 +135,7 @@ void Kmeans::General_K_Means(Matrix matrix)
 			{
 				cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
 			}
+			//Coherence is based on the total cluster quality
 			result = Coherence(n_Clusters);
 			/*if (dumpswitch)
 			{
@@ -144,7 +145,7 @@ void Kmeans::General_K_Means(Matrix matrix)
 					cout << "Verify obj. func. : " << verify_obj_func(p_Docs, n_Clusters) << endl;
 			}*/
 			std::cout << "E";
-		}
+		}//epsilon is a user defined function default set to 0.0001, initial_obj_fun_val is defined by the initial partioning.
 	} while ((pre_Result - result) > epsilon*initial_obj_fun_val);
 	std::cout << std::endl;
 	/*if (dubug)
@@ -152,11 +153,11 @@ void Kmeans::General_K_Means(Matrix matrix)
 		std::cout << "Euclidean K-Means loop stoped with " << n_Iters << " iterations." << std::endl;
 		//generate_Confusion_Matrix(label, n_Class);
 	}*/
-
+	//if the kmeans has run and it was stabil we retrieve the euclidean distance of concept_vectors and the normal_ConceptVectors
 	if (stabilized)
 		for (i = 0; i < n_Clusters; i++)
 			matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
-
+	//if it required to assign new changes it will update quility change matrix
 	if ((!no_assignment_change) && (f_v_times >0))
 		for (i = 0; i<n_Clusters; i++)
 			Update_Quality_Change_Mat(matrix, i);
@@ -169,6 +170,7 @@ int Kmeans::Assign_Cluster(Matrix matrix, bool stabilized)
 	int i, j, multi = 0, changed = 0, temp_Cluster_ID;
 	double temp_sim;
 
+	//if stabil (run less than 
 	if (stabilized)
 	{
 		for (i = 0; i < n_Clusters; i++)
@@ -204,6 +206,7 @@ int Kmeans::Assign_Cluster(Matrix matrix, bool stabilized)
 			}
 		}
 	}
+	//if unstable 
 	else
 	{
 		for (i = 0; i < col; i++)
@@ -345,7 +348,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 			cout << "Start with a random chosen vector" << endl;
 		}
 		/*break;
-	case 1:
+	case 1: //can perhaps be used later with use of gMeans if we choose to convert it to gmeans
 	default:
 		float *v, min;
 		int min_ID = 0;
