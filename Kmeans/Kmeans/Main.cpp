@@ -2,7 +2,7 @@
 #include <Vector>
 #include <Iostream>
 #include "Kmeans.h"
-//#include "PrintMatrix.h"
+#include "PrintMatrix.h"
 
 using namespace std;
 
@@ -22,7 +22,7 @@ int main()
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
-	//DynamicPrintMatrix(matrix,row,col);
+	PrintMatrix(matrix);
 	std::cout << "i DID it";
 	//std::cin >> n_clusters;
 	return 0;

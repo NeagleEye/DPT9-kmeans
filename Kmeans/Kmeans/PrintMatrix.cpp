@@ -3,25 +3,36 @@
 #include <fstream>
 #include "printMatrix.h"
 
-
-const int sizeOfArray = 1000;
-
-/*void PrintMatrix(std::vector<Matrix> input)
+void PrintMatrix(Matrix input)
 {
 	std::ofstream myfile;
 	myfile.open("example.txt");
 	myfile << "P1\n";
-	myfile << sizeOfArray << " " << sizeOfArray << "\n";
+	myfile << input.GetColumns() << " " << input.GetColumns() << "\n";
 	int position = 0;
-	for (int i = 0; i < sizeOfArray; i++)
+	bool noMorePoints = false;
+	for (int i = 0; i < input.GetColumns(); i++)
 	{
 		int test = 0;
-		for (int j = 0; j < sizeOfArray; j++)
+		for (int j = 0; j < input.GetColumns(); j++)
 		{
-			if (input[position].n_row == i && input[position].n_col == j)
+			if (!noMorePoints)
 			{
-				myfile << "1 ";
-				position++;
+				int XPosition = input.GetVal(0, position);
+				int YPosition = input.GetVal(1, position);
+				if (YPosition == i && XPosition == j)
+				{
+					myfile << "1 ";
+					position++;
+				}
+				else
+				{
+					myfile << "0 ";
+				}
+				if (position >= input.GetColumns())
+				{
+					noMorePoints = true;
+				}
 			}
 			else
 			{
@@ -33,31 +44,3 @@ const int sizeOfArray = 1000;
 	myfile.close();
 
 }
-
-void DynamicPrintMatrix(Matrix input)
-{
-	std::ofstream myfile;
-	myfile.open("example.txt");
-	myfile << "P1\n";
-	myfile << input.GetRows() << " " << input.GetColumns() << "\n";
-	int position = 0;
-	for (int i = 0; i < input.GetRows(); i++)
-	{
-		int test = 0;
-		for (int j = 0; j < input.GetColumns(); j++)
-		{
-			if (input.[position].n_row == i && input[position].n_col == j)
-			{
-				myfile << "1 ";
-				position++;
-			}
-			else
-			{
-				myfile << "0 ";
-			}
-		}
-		myfile << "\n";
-	}
-	myfile.close();
-
-}*/
