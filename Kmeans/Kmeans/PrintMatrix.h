@@ -4,4 +4,4 @@
 #endif 
 #include <vector>
 
-void PrintMatrix(Matrix input);
+void PrintMatrix(Matrix input, int MAX_X, int MAX_Y);

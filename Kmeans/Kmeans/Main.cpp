@@ -22,7 +22,7 @@ int main()
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
-	PrintMatrix(matrix);
+	PrintMatrix(matrix,x,y);
 	std::cout << "i DID it";
 	//std::cin >> n_clusters;
 	return 0;
