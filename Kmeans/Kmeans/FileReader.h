@@ -11,3 +11,4 @@ struct Mat
 };
 
 Matrix GetVector();
+Matrix GetVector(int &x,int &y);

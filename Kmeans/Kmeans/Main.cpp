@@ -9,8 +9,8 @@ using namespace std;
 int main()
 {
 	int *cluster, n_clusters = 4;
-	
-	Matrix matrix = GetVector();
+	int x=0, y=0;
+	Matrix matrix = GetVector(x,y);
 
 	cluster = new int[matrix.GetColumns()];
 	//Initialize Euclidean kmeans

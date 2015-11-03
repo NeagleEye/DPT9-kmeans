@@ -12,6 +12,12 @@
 
 Matrix GetVector()
 {
+	int a, b;
+	return GetVector(a, b);
+}
+
+Matrix GetVector(int &x, int &y)
+{
 	Mat result;
 	std::string line;
 	std::ifstream myfile("AllRandom.mtx");
@@ -28,7 +34,11 @@ Matrix GetVector()
 		for (int i = 0; i < result.n_col; i++)
 		{
 			for (int j = 0; j < result.n_row; j++)
+			{
 				myfile >> result.val[j][i];
+				if (j == 0){ if (result.val[j][i] > x)x = result.val[j][i]; }
+				else if (j == 1){ if (result.val[j][i] > y)y = result.val[j][i]; }
+			}
 		}
 		//std::cout << result.val[result.n_row - 1][result.n_col - 1] << " last element in file";
 		myfile.close();
