@@ -20,10 +20,12 @@ int main()
 	//Calculate normal vectors on every column set.
 	matrix.ComputeNormalVector();
 	k.SetEmptyDocs(n_Empty_Docs, e_d_ID);
-
+	k.Initialize_CV(matrix);
+	k.General_K_Means(matrix);
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
 	//DynamicPrintMatrix(matrix,row,col);
+	std::cout << "iDIDit";
 	return 0;
 }

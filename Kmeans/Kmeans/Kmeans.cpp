@@ -57,7 +57,7 @@ Kmeans::~Kmeans()
 
 }
 
-void Kmeans::General_K_Means(Matrix *matrix)
+void Kmeans::General_K_Means(Matrix matrix)
 {
 
 	int n_Iters, i, j, k;
@@ -108,14 +108,14 @@ void Kmeans::General_K_Means(Matrix *matrix)
 				}
 				if (n_Iters > EST_START)
 					for (i = 0; i<col; i++)
-						sim_Mat[cluster[i]][i] = matrix->Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]);
+						sim_Mat[cluster[i]][i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]);
 				else
 					for (i = 0; i < n_Clusters; i++)
-						matrix->Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
+						matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 			}
 			else
 				for (i = 0; i < n_Clusters; i++)
-					matrix->Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
+					matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 
 			for (i = 0; i<n_Clusters; i++)
 				cluster_quality[i] = 0.0;
@@ -149,7 +149,7 @@ void Kmeans::General_K_Means(Matrix *matrix)
 
 	if (stablized)
 		for (i = 0; i < n_Clusters; i++)
-			matrix->Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
+			matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 
 	if ((!no_assignment_change) && (f_v_times >0))
 		for (i = 0; i<n_Clusters; i++)
@@ -157,7 +157,7 @@ void Kmeans::General_K_Means(Matrix *matrix)
 
 }
 
-int Kmeans::Assign_Cluster(Matrix *matrix, bool simi_est)
+int Kmeans::Assign_Cluster(Matrix matrix, bool simi_est)
 {
 
 	int i, j, k, multi = 0, changed = 0, temp_Cluster_ID;
@@ -185,7 +185,7 @@ int Kmeans::Assign_Cluster(Matrix *matrix, bool simi_est)
 						if (sim_Mat[j][i] < temp_sim)
 						{
 							multi++;
-							sim_Mat[j][i] = matrix->Euc_Dis(concept_Vectors[j], i, normal_ConceptVectors[j]);
+							sim_Mat[j][i] = matrix.Euc_Dis(concept_Vectors[j], i, normal_ConceptVectors[j]);
 							if (sim_Mat[j][i] < temp_sim)
 							{
 								temp_sim = sim_Mat[j][i];
@@ -243,7 +243,7 @@ int Kmeans::Assign_Cluster(Matrix *matrix, bool simi_est)
 	return changed;
 }
 
-void Kmeans::Initialize_CV(Matrix *matrix, char * seeding_file)
+void Kmeans::Initialize_CV(Matrix matrix)
 {
 
 	int i, j, k;
@@ -258,7 +258,7 @@ void Kmeans::Initialize_CV(Matrix *matrix, char * seeding_file)
 	for (i = 0; i < col; i++)
 	{
 		if ((cluster[i] >= 0) && (cluster[i] < n_Clusters))
-			matrix->Ith_Add_CV(i, concept_Vectors[cluster[i]]);
+			matrix.Ith_Add_CV(i, concept_Vectors[cluster[i]]);
 		else
 			cluster[i] = 0;
 	}
@@ -272,7 +272,7 @@ void Kmeans::Initialize_CV(Matrix *matrix, char * seeding_file)
 		normal_ConceptVectors[i] = norm_2(concept_Vectors[i], row);
 
 	for (i = 0; i < n_Clusters; i++)
-		matrix->Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
+		matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 
 	for (i = 0; i<n_Clusters; i++)
 		cluster_quality[i] = 0.0;
@@ -327,11 +327,11 @@ void Kmeans::Initialize_CV(Matrix *matrix, char * seeding_file)
 	//memory_consume += matrix->GetMemoryUsed();
 }
 
-void Kmeans::Well_Separated_Centroids(Matrix *matrix)
+void Kmeans::Well_Separated_Centroids(Matrix matrix)
 // VT 2009-11-28
 {
 	int i, j, k, min_ind, *cv = new int[n_Clusters];
-	float min, cos_sum;
+	double min, cos_sum;
 	bool *mark = new bool[col];
 
 	for (i = 0; i< col; i++)
@@ -397,11 +397,11 @@ void Kmeans::Well_Separated_Centroids(Matrix *matrix)
 		break;
 	}*/
 
-	matrix->Ith_Add_CV(cv[0], concept_Vectors[0]);
+	matrix.Ith_Add_CV(cv[0], concept_Vectors[0]);
 	mark[cv[0]] = true;
 
-	normal_ConceptVectors[0] = matrix->GetNorm(cv[0]);
-	matrix->Euc_Dis(concept_Vectors[0], normal_ConceptVectors[0], sim_Mat[0]);
+	normal_ConceptVectors[0] = matrix.GetNorm(cv[0]);
+	matrix.Euc_Dis(concept_Vectors[0], normal_ConceptVectors[0], sim_Mat[0]);
 	for (i = 1; i<n_Clusters; i++)
 	{
 		min_ind = 0;
@@ -421,10 +421,10 @@ void Kmeans::Well_Separated_Centroids(Matrix *matrix)
 			}
 		}
 		cv[i] = min_ind;
-		matrix->Ith_Add_CV(cv[i], concept_Vectors[i]);
+		matrix.Ith_Add_CV(cv[i], concept_Vectors[i]);
 
-		normal_ConceptVectors[i] = matrix->GetNorm(cv[i]);
-		matrix->Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
+		normal_ConceptVectors[i] = matrix.GetNorm(cv[i]);
+		matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 		mark[cv[i]] = true;
 	}
 
@@ -443,7 +443,7 @@ void Kmeans::Well_Separated_Centroids(Matrix *matrix)
 	delete[] mark;
 }
 
-void Kmeans::Update_Centroids(Matrix *matrix)
+void Kmeans::Update_Centroids(Matrix matrix)
 {
 
 	int i, j, k;
@@ -456,7 +456,7 @@ void Kmeans::Update_Centroids(Matrix *matrix)
 	{
 		while (i<empty_Docs_ID[k])
 		{
-			matrix->Ith_Add_CV(i, concept_Vectors[cluster[i]]);
+			matrix.Ith_Add_CV(i, concept_Vectors[cluster[i]]);
 			i++;
 		}
 		k++;
@@ -493,7 +493,7 @@ double Kmeans::Coherence(int n_clus)
 	return value + n_clus*omega;
 }
 
-double Kmeans::Delta_X(Matrix *matrix, int x, int c_ID)
+double Kmeans::Delta_X(Matrix matrix, int x, int c_ID)
 {
 	double quality_change = 0.0;
 
@@ -508,7 +508,7 @@ double Kmeans::Delta_X(Matrix *matrix, int x, int c_ID)
 	return quality_change;
 }
 
-void Kmeans::Update_Quality_Change_Mat(Matrix *matrix, int c_ID)
+void Kmeans::Update_Quality_Change_Mat(Matrix matrix, int c_ID)
 // update the quality_change_matrix for a particular cluster 
 {
 	int k, i;

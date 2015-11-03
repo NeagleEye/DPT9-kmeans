@@ -15,8 +15,8 @@ Matrix::Matrix(int row, int col, double **val)
 
 Matrix::~Matrix()
 {
-	if (normalVector != NULL)
-		delete[] normalVector;
+	/*if (normalVector != NULL)
+		delete[] normalVector;*/
 }
 
 

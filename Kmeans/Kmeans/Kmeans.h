@@ -14,15 +14,15 @@ public:
 		n_Empty_Docs = n_E_Docs;
 		empty_Docs_ID = e_D_ID;
 	};
-	void Initialize_CV(Matrix *matrix, char *seeding_file);
-	int Assign_Cluster(Matrix *p_Docs, bool simi_est);
-	void Update_Centroids(Matrix *matrix);
-	void Well_Separated_Centroids(Matrix *p_Docs);
-	void General_K_Means(Matrix *p_Docs);
+	void Initialize_CV(Matrix matrix);
+	int Assign_Cluster(Matrix matrix, bool simi_est);
+	void Update_Centroids(Matrix matrix);
+	void Well_Separated_Centroids(Matrix matrix);
+	void General_K_Means(Matrix matrix);
 	void Compute_Cluster_Size();
 	double Coherence(int n_clus);
-	double Delta_X(Matrix *matrix, int x, int c_ID);
-	void Update_Quality_Change_Mat(Matrix *p_Docs, int c_ID);
+	double Delta_X(Matrix matrix, int x, int c_ID);
+	void Update_Quality_Change_Mat(Matrix matrix, int c_ID);
 private:
 	RandomGenerator_MT19937 rand_gen;
 	double **sim_Mat, *normal_ConceptVectors, *new_normalCV, **concept_Vectors, **old_ConceptVectors, *cluster_quality, *cv_Norm;
