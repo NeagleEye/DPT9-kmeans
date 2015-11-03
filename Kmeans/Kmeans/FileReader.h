@@ -4,4 +4,10 @@
 #endif
 #include <vector>
 
-std::vector<Matrix> GetVector(int &row, int &column);
+struct Mat
+{
+	int n_row, n_col;
+	double **val;
+};
+
+Matrix GetVector();
