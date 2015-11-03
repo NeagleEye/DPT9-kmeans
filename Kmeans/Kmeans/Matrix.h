@@ -14,6 +14,18 @@ public:
 	void ComputeNormalVector();
 	int GetRows(){ return n_row_elements; };
 	int GetColumns(){ return n_col; };
+	
+	/*
+	Getval(i,j)
+	getval(0,0) = 1
+	getval(1,0) = 2
+	getval(0,1) = 3
+	getval(1,1) = 4
+
+	mtxfiles values (beyond first line)
+	1 2
+	3 4
+	*/
 	double GetVal(int i, int j) { return value[i][j]; }
 	void Ith_Add_CV(int i, double *CV);
 
