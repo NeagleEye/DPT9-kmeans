@@ -1,4 +1,4 @@
-*.tlog
-*.idb
 *.obj
 *.log
+*.tlog
+*.idb
