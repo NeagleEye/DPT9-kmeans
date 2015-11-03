@@ -17,6 +17,7 @@ public:
 	double GetVal(int i, int j) { return value[i][j]; }
 	void Ith_Add_CV(int i, double *CV);
 
+	//Calculate distance
 	double Euc_Dis(double *x, int i, double norm_x);
 	void Euc_Dis(double *x, double norm_x, double *result);
 	double GetNorm(int i) { return normalVector[i]; }

@@ -24,5 +24,6 @@ int main()
 	*/
 	//DynamicPrintMatrix(matrix,row,col);
 	std::cout << "i DID it";
+	//std::cin >> n_clusters;
 	return 0;
 }

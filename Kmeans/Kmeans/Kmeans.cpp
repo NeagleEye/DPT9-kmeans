@@ -5,6 +5,7 @@
 
 Kmeans::Kmeans(int n_cluster, int clusterinit[], int columns, int rows)
 {
+	//Initialize values
 	sim_Mat = new double*[n_cluster];
 	for (int i = 0; i < n_cluster; i++)
 		sim_Mat[i] = new double[columns];
@@ -36,6 +37,7 @@ Kmeans::Kmeans(int n_cluster, int clusterinit[], int columns, int rows)
 	rand_gen.Set((unsigned)time(NULL));
 }
 
+//destructor remove all allocated memory for pointers.
 Kmeans::~Kmeans()
 {
 	delete[] normal_ConceptVectors;
@@ -59,53 +61,60 @@ Kmeans::~Kmeans()
 
 void Kmeans::General_K_Means(Matrix matrix)
 {
-
-	int n_Iters, i, j, k;
+	//Kmeans will only work with its assigned values, whereas gmeans can modify kmeans.
+	int n_Iters, i, j;
 	bool no_assignment_change;
 
-	//if (dumpswitch)
-	//	cout << endl << "- Start Euclidean K-Means loop. -" << endl << endl;
 	n_Iters = 0;
 	no_assignment_change = true;
 
+	//DO while of the algorithm to assign to new cluster is closer, update the centroid.
+	//Before we get here we will have used Well_Seperated_Centroids which will be the initial partition of data
 	do
 	{
 		pre_Result = result;
 		n_Iters++;
+		//We estimate its a stable cluster if it can be finished within 5 steps
 		if (n_Iters >EST_START)
-			stablized = true;
-		//if (dumpswitch && stablized)
-		//	cout << "(Similarity estimation used.)" << endl;
-		if (Assign_Cluster(matrix, stablized) == 0)
-		{
-			//if (dumpswitch)
-				//cout << "No points are moved in the last step " << endl << "@" << endl << endl;
-		}
+			stabilized = true;
+
+		//If there is no new assignment we have finished clustering.
+		if (Assign_Cluster(matrix, stabilized) == 0){}
 		else
 		{
+			/*There was an assignment thus we have to compute new centroids and update the size of each cluster,
+			*as values will be assigned to other clusters*/
 			no_assignment_change = false;
+			
 			Compute_Cluster_Size();
+
+			//If unstable copy concept_vectors onto old_conceptVectors
 			if (n_Iters >= EST_START)
 				for (i = 0; i < n_Clusters; i++)
 					for (j = 0; j < row; j++)
 						old_ConceptVectors[i][j] = concept_Vectors[i][j];
 
+			//Update Centroids based on the new clusters
 			Update_Centroids(matrix);
 
+			//Average vector for all clusters (concept_vectors now contain the average vector of each cluster)
 			for (i = 0; i < n_Clusters; i++)
 				average_vec(concept_Vectors[i], row, clusterSize[i]);
+			//normal Vector gets the squared average vector
 			for (i = 0; i < n_Clusters; i++)
 				normal_ConceptVectors[i] = norm_2(concept_Vectors[i], row);
-
+			//if unstable run
 			if (n_Iters >= EST_START)
 			{
+				//Calculate the difference between the previous average vector versus the new vector
 				for (i = 0; i < n_Clusters; i++)
 				{
 					difference[i] = 0.0;
 					for (j = 0; j < row; j++)
 						difference[i] += (old_ConceptVectors[i][j] - concept_Vectors[i][j]) * (old_ConceptVectors[i][j] - concept_Vectors[i][j]);
-					//  diff[i] = diff[i] - 2*sqrt(diff[i]*Sim_Mat[Cluster[i]][i]);
 				}
+
+				//returning distance between the squared average vector and the average vector to sim_mat
 				if (n_Iters > EST_START)
 					for (i = 0; i<col; i++)
 						sim_Mat[cluster[i]][i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]);
@@ -114,20 +123,17 @@ void Kmeans::General_K_Means(Matrix matrix)
 						matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 			}
 			else
-				for (i = 0; i < n_Clusters; i++)
+				for (i = 0; i < n_Clusters; i++)//returning distance between the squared average vector and the average vector to sim_mat
 					matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 
+			//initialize cluster_quality
 			for (i = 0; i<n_Clusters; i++)
 				cluster_quality[i] = 0.0;
-			k = 0;
+
+			//update the cluster quality based on the collected simulation matrix
 			for (i = 0; i < col; i++)
 			{
-				//while (i<empty_Docs_ID[k])
-				//{
-					cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
-					i++;
-				//}
-				//k++;
+				cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
 			}
 			result = Coherence(n_Clusters);
 			/*if (dumpswitch)
@@ -141,13 +147,13 @@ void Kmeans::General_K_Means(Matrix matrix)
 		}
 	} while ((pre_Result - result) > epsilon*initial_obj_fun_val);
 	std::cout << std::endl;
-	/*if (dumpswitch)
+	/*if (dubug)
 	{
-		cout << "Euclidean K-Means loop stoped with " << n_Iters << " iterations." << endl;
-		generate_Confusion_Matrix(label, n_Class);
+		std::cout << "Euclidean K-Means loop stoped with " << n_Iters << " iterations." << std::endl;
+		//generate_Confusion_Matrix(label, n_Class);
 	}*/
 
-	if (stablized)
+	if (stabilized)
 		for (i = 0; i < n_Clusters; i++)
 			matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 
@@ -157,15 +163,13 @@ void Kmeans::General_K_Means(Matrix matrix)
 
 }
 
-int Kmeans::Assign_Cluster(Matrix matrix, bool simi_est)
+int Kmeans::Assign_Cluster(Matrix matrix, bool stabilized)
 {
 
-	int i, j, k, multi = 0, changed = 0, temp_Cluster_ID;
+	int i, j, multi = 0, changed = 0, temp_Cluster_ID;
 	double temp_sim;
 
-	k = 0;
-
-	if (simi_est)
+	if (stabilized)
 	{
 		for (i = 0; i < n_Clusters; i++)
 			for (j = 0; j < col; j++)
@@ -433,10 +437,12 @@ void Kmeans::Update_Centroids(Matrix matrix)
 {
 
 	int i, j;
-
+	//reset concept_Vectors
 	for (i = 0; i < n_Clusters; i++)
 		for (j = 0; j < row; j++)
 			concept_Vectors[i][j] = 0.0;
+	//Calculate new concept_Vectors
+	//get all the vectors specific to the specific cluster
 	for (i = 0; i < col; i++)
 	{
 		matrix.Ith_Add_CV(i, concept_Vectors[cluster[i]]);
@@ -449,8 +455,11 @@ void Kmeans::Compute_Cluster_Size()
 	int i, k;
 
 	k = 0;
+	//Reset clusterSize
 	for (i = 0; i < n_Clusters; i++)
 		clusterSize[i] = 0;
+	//clustersize is how many values is assigned to that specific cluster
+	//cluster is pointer to what cluster that it belongs to (a pointer to cluster
 	for (i = 0; i < col; i++)
 	{
 		clusterSize[cluster[i]]++;

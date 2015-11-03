@@ -1,6 +1,6 @@
 #include "MathonVectors.h"
 
-//average vector over all row elements
+//average vector over all elements in the cluster
 void average_vec(double vec[], int n, int num)
 {
 	int i;
