@@ -4,4 +4,4 @@
 #endif
 #include <vector>
 
-std::vector<Matrix> GetVector();
+std::vector<Matrix> GetVector(int &row, int &column);
