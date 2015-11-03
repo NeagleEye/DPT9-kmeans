@@ -4,5 +4,4 @@
 #endif 
 #include <vector>
 
-void PrintMatrix(std::vector<Matrix> input);
-void DynamicPrintMatrix(std::vector<Matrix> input, int row, int col);
+void PrintMatrix(Matrix input, int MAX_X, int MAX_Y);

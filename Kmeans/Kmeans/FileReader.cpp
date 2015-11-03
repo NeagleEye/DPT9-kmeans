@@ -10,27 +10,40 @@
 *
 */
 
-std::vector<Matrix> GetVector(int &row, int &col)
+Matrix GetVector()
 {
-	std::vector<Matrix> result;
+	int a, b;
+	return GetVector(a, b);
+}
+
+Matrix GetVector(int &x, int &y)
+{
+	Mat result;
 	std::string line;
 	std::ifstream myfile("AllRandom.mtx");
 	if (myfile.is_open())
-	{	
-		while (getline(myfile, line))
+	{
+		//the reader takes the first number and uses as rows >> jump over space, uses next number as column >> jumps over space to next number on next line.
+		myfile >> result.n_row >> result.n_col;
+		//Init the value to have nrow elements [inner element]
+		result.val = new double*[result.n_row];
+		//initialize every column for every row a column data[outerelement]
+		for (int i = 0; i < result.n_row; i++)
+			result.val[i] = new double[result.n_col];
+
+		for (int i = 0; i < result.n_col; i++)
 		{
-			Matrix tempResult;
-			std::istringstream iss(line);
-			iss >> tempResult.n_row >> tempResult.n_col >> tempResult.value;
-			result.push_back(tempResult);
-			//To get row and col
-			if (tempResult.n_row > row)
-				row = tempResult.n_row;
-			if (tempResult.n_col > col)
-				col = tempResult.n_col;
+			for (int j = 0; j < result.n_row; j++)
+			{
+				myfile >> result.val[j][i];
+				if (j == 0){ if (result.val[j][i] > x)x = result.val[j][i]; }
+				else if (j == 1){ if (result.val[j][i] > y)y = result.val[j][i]; }
+			}
 		}
+		//std::cout << result.val[result.n_row - 1][result.n_col - 1] << " last element in file";
 		myfile.close();
 	}
 
-	return result;
+	Matrix matrix(result.n_row, result.n_col, result.val);
+	return matrix;
 }
