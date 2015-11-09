@@ -18,7 +18,7 @@ __global__ void addKernel(int *c, const int *a, const int *b)
 	int i = threadIdx.x;
 	c[i] = a[i] + b[i];
 }
-// class test
+#pragma region class test
 class testClass
 {
 public:
@@ -58,7 +58,7 @@ cudaError_t testClass::addWithCuda(int *c, const int *a, const int *b, unsigned 
 	cudaMemcpy(dev_b, b, size * sizeof(int), cudaMemcpyHostToDevice);
 
 	// Launch a kernel on the GPU with one thread for each element.
-	addKernel << <1, size >> >(dev_c, dev_a, dev_b);
+	addKernel<<<1, size>>>(dev_c, dev_a, dev_b);
 
 	// Check for any errors launching the kernel
 	cudaStatus = cudaGetLastError();
@@ -76,13 +76,13 @@ cudaError_t testClass::addWithCuda(int *c, const int *a, const int *b, unsigned 
 
 	return cudaStatus;
 }
-
+#pragma endregion
 
 
 
 
 //cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size);
-
+#pragma region main
 int main()
 {
     const int arraySize = 5;
@@ -111,7 +111,7 @@ int main()
 
     return 0;
 }
-
+#pragma endregion
 // Helper function for using CUDA to add vectors in parallel.
 /*
 cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size)
