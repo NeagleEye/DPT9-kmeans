@@ -40,7 +40,6 @@ Matrix GetVector(int &x, int &y)
 				else if (j == 1){ if (result.val[j][i] > y)y = result.val[j][i]; }
 			}
 		}
-		//std::cout << result.val[result.n_row - 1][result.n_col - 1] << " last element in file";
 		myfile.close();
 	}
 

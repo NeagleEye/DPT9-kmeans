@@ -18,12 +18,11 @@ int main()
 	//Calculate normal vectors on every column set.
 	matrix.ComputeNormalVector();
 	k.Initialize_CV(matrix);
-	k.General_K_Means(matrix);
+	k.Generel_K_Means(matrix);
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
 	PrintMatrix(matrix,x,y);
-	std::cout << "i DID it";
-	//std::cin >> n_clusters;
+
 	return 0;
 }
