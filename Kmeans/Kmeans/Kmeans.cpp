@@ -59,7 +59,7 @@ Kmeans::~Kmeans()
 
 }
 
-void Kmeans::General_K_Means(Matrix matrix)
+void Kmeans::Generel_K_Means(Matrix matrix)
 {
 	//Kmeans will only work with its assigned values, whereas gmeans can modify kmeans.
 	int n_Iters, i, j;
@@ -137,22 +137,12 @@ void Kmeans::General_K_Means(Matrix matrix)
 			}
 			//Coherence is based on the total cluster quality
 			result = Coherence(n_Clusters);
-			/*if (dumpswitch)
-			{
-				find_worst_vectors(false);
-				cout << "Obj. func. ( + Omiga * n_Clusters) = " << Result << endl << "@" << endl << endl;
-				if (verify)
-					cout << "Verify obj. func. : " << verify_obj_func(p_Docs, n_Clusters) << endl;
-			}*/
+
 			std::cout << "E";
 		}//epsilon is a user defined function default set to 0.0001, initial_obj_fun_val is defined by the initial partioning.
 	} while ((pre_Result - result) > epsilon*initial_obj_fun_val);
 	std::cout << std::endl;
-	/*if (dubug)
-	{
-		std::cout << "Euclidean K-Means loop stoped with " << n_Iters << " iterations." << std::endl;
-		//generate_Confusion_Matrix(label, n_Class);
-	}*/
+
 	//if the kmeans has run and it was stabil we retrieve the euclidean distance of concept_vectors and the normal_ConceptVectors
 	if (stabilized)
 		for (i = 0; i < n_Clusters; i++)
@@ -173,6 +163,7 @@ int Kmeans::Assign_Cluster(Matrix matrix, bool stabilized)
 	//if stabil (run less than 
 	if (stabilized)
 	{
+		//Init the distance based on old distances
 		for (i = 0; i < n_Clusters; i++)
 			for (j = 0; j < col; j++)
 				if (i != cluster[j])
@@ -186,10 +177,13 @@ int Kmeans::Assign_Cluster(Matrix matrix, bool stabilized)
 			for (j = 0; j < n_Clusters; j++)
 				if (j != cluster[i])
 				{
+					//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
 					if (sim_Mat[j][i] < temp_sim)
 					{
 						multi++;
+						//recalculate the new vector based on new formula
 						sim_Mat[j][i] = matrix.Euc_Dis(concept_Vectors[j], i, normal_ConceptVectors[j]);
+						//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
 						if (sim_Mat[j][i] < temp_sim)
 						{
 							temp_sim = sim_Mat[j][i];
@@ -197,7 +191,7 @@ int Kmeans::Assign_Cluster(Matrix matrix, bool stabilized)
 						}
 					}
 				}
-
+			//Assign new cluster if closer than previous cluster
 			if (temp_Cluster_ID != cluster[i])
 			{
 				cluster[i] = temp_Cluster_ID;
@@ -215,15 +209,18 @@ int Kmeans::Assign_Cluster(Matrix matrix, bool stabilized)
 			temp_Cluster_ID = cluster[i];
 
 			for (j = 0; j < n_Clusters; j++)
+				//if point does not belong to cluster do
 				if (j != cluster[i])
 				{
 					multi++;
+					//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
 					if (sim_Mat[j][i] < temp_sim)
 					{
 						temp_sim = sim_Mat[j][i];
 						temp_Cluster_ID = j;
 					}
 				}
+			//Assign new cluster if closer than previous cluster
 			if (temp_Cluster_ID != cluster[i])
 			{
 				cluster[i] = temp_Cluster_ID;
@@ -232,14 +229,10 @@ int Kmeans::Assign_Cluster(Matrix matrix, bool stabilized)
 			}
 		}
 	}
-	/*if (dumpswitch)
-	{
-		cout << multi << " Euclidean distance computation\n";
-		cout << changed << " assignment changes\n";
-	}*/
 	return changed;
 }
 
+//Initialize the Concept Vectors
 void Kmeans::Initialize_CV(Matrix matrix)
 {
 
@@ -254,23 +247,28 @@ void Kmeans::Initialize_CV(Matrix matrix)
 			concept_Vectors[i][j] = 0.0;
 	for (i = 0; i < col; i++)
 	{
+		//add current concept_vector to the original vector
 		if ((cluster[i] >= 0) && (cluster[i] < n_Clusters))
 			matrix.Ith_Add_CV(i, concept_Vectors[cluster[i]]);
 		else
 			cluster[i] = 0;
 	}
-
+	//compute how many points belongs to the different cluster
 	Compute_Cluster_Size();
 
+	//average vector for each cluster
 	for (i = 0; i < n_Clusters; i++)
 		average_vec(concept_Vectors[i], row, clusterSize[i]);
 
+	//Compute the normal vector for n_clusters number of vectors = ^2 
 	for (i = 0; i < n_Clusters; i++)
 		normal_ConceptVectors[i] = norm_2(concept_Vectors[i], row);
 
+	//calculate the distance from the concept vectors to the normal vectors
 	for (i = 0; i < n_Clusters; i++)
 		matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 
+	//Init Cluster quality which is the distance between normal CV and concept_vectors
 	for (i = 0; i<n_Clusters; i++)
 		cluster_quality[i] = 0.0;
 	k = 0;
@@ -281,46 +279,25 @@ void Kmeans::Initialize_CV(Matrix matrix)
 	//for (i = 0; i < n_Clusters; i++)
 	//diff[i] = 0.0;
 
-	// because we need give the coherence here.
-
+	//A random constant figured out based on cluster_quality
 	initial_obj_fun_val = result = Coherence(n_Clusters);
 	fv_threshold = -1.0*initial_obj_fun_val*delta;
-	/*if (dumpswitch || evaluate)
-	{
-		outputClusterSize();
-		cout << "Initial Obj. func.: " << Result << endl;
-		if (n_Class >0)
-			cout << "Initial confusion matrix :" << endl;
-		generate_Confusion_Matrix(label, n_Class);
-	}*/
-
-	/*if (evaluate)
-	{
-		purity_Entropy_MutInfo();
-		F_measure(label, n_Class);
-		micro_avg_precision_recall();
-		cout << endl;
-		cout << "* Evaluation done. *" << endl;
-		exit(0);
-	}*/
 
 	if (f_v_times >0)
 	{
-		// VT 2009-11-28
-		// quality_change_mat = new (float *)[n_Clusters];
+		//init and use quality change matrix (used to change quality Matrix)
 		quality_change_mat = new double *[n_Clusters];
 		// VT 2009-11-28
 		for (int j = 0; j < n_Clusters; j++)
 			quality_change_mat[j] = new double[col];
-		//memory_consume += (n_Clusters*n_Docs)*sizeof(float);
+
 		for (i = 0; i < n_Clusters; i++)
 			Update_Quality_Change_Mat(matrix, i);
 	}
-	//memory_consume += matrix->GetMemoryUsed();
 }
 
+//Centroids should be separated
 void Kmeans::Well_Separated_Centroids(Matrix matrix)
-// VT 2009-11-28
 {
 	int i, j, k, min_ind, *cv = new int[n_Clusters];
 	double min, cos_sum;
@@ -329,72 +306,26 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 	for (i = 0; i< col; i++)
 		mark[i] = false;
 
-	//for (i = 0; i< n_Empty_Docs; i++)
-		//mark[empty_Docs_ID[i]] = true;
 
 	for (i = 0; i < n_Clusters; i++)
 		for (j = 0; j < row; j++)
 			concept_Vectors[i][j] = 0.0;
 
-	/*switch (choice)
-	{
-	case 0:*/
-		do{
-			cv[0] = rand_gen.GetUniformInt(col);
-		} while (mark[cv[0]]);
-		/*if (dumpswitch)
-		{
-			cout << "Cluster centroids are chosen to be well separated from each other." << endl;
-			cout << "Start with a random chosen vector" << endl;
-		}
-		/*break;
-	case 1: //can perhaps be used later with use of gMeans if we choose to convert it to gmeans
-	default:
-		float *v, min;
-		int min_ID = 0;
-		v = new float[n_Words];
+	//Random vectors generation
+	do{
+		cv[0] = rand_gen.GetUniformInt(col);
+	} while (mark[cv[0]]);
 
-		for (i = 0; i < n_Words; i++)
-			v[i] = 0.0;
-		for (i = 0; i < n_Docs; i++)
-			p_Docs->ith_add_CV(i, v);
-
-		float temp, temp_norm;
-		k = 0;
-		average_vec(v, n_Words, n_Docs);
-		temp_norm = norm_2(v, n_Words);
-		min = 0.0;
-		min_ID = 0;
-		for (i = 0; i<n_Docs; i++)
-		{
-			while (i<empty_Docs_ID[k])
-			{
-				temp = p_Docs->euc_dis(v, i, temp_norm);
-				if (temp > min)
-				{
-					min = temp;
-					min_ID = i;
-				}
-				i++;
-			}
-			k++;
-		}
-
-		cv[0] = min_ID;
-		delete[] v;
-		if (dumpswitch)
-		{
-			cout << "Cluster centroids are chosen to be well separated from each other." << endl;
-			cout << "Start with a vector farthest from the centroid of the whole data set" << endl;
-		}
-		break;
-	}*/
-
+	//add current concept_vector to the original vector
 	matrix.Ith_Add_CV(cv[0], concept_Vectors[0]);
 	mark[cv[0]] = true;
 
+	//get normal CV
 	normal_ConceptVectors[0] = matrix.GetNorm(cv[0]);
+	//Euclidean Distance between the vectors
 	matrix.Euc_Dis(concept_Vectors[0], normal_ConceptVectors[0], sim_Mat[0]);
+
+	//Create random concept vectors (roughly in the same area)
 	for (i = 1; i<n_Clusters; i++)
 	{
 		min_ind = 0;
@@ -421,21 +352,16 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 		mark[cv[i]] = true;
 	}
 
+	//assign the points to clusters
 	for (i = 0; i<col; i++)
 		cluster[i] = 0;
 	Assign_Cluster(matrix, false);
 
-	/*if (dumpswitch)
-	{
-		cout << "Vectors chosen to be the centroids are : ";
-		for (i = 0; i<n_Clusters; i++)
-			cout << cv[i] << " ";
-		cout << endl;
-	}*/
 	delete[] cv;
 	delete[] mark;
 }
 
+//Update the centroids
 void Kmeans::Update_Centroids(Matrix matrix)
 {
 
@@ -469,6 +395,7 @@ void Kmeans::Compute_Cluster_Size()
 	}
 }
 
+//Gives the result of the cluster_quaility added together.
 double Kmeans::Coherence(int n_clus)
 {
 	int i;
@@ -480,23 +407,27 @@ double Kmeans::Coherence(int n_clus)
 	return value + n_clus*omega;
 }
 
+//Quality_change based on the different clusters.
+
 double Kmeans::Delta_X(Matrix matrix, int x, int c_ID)
 {
 	double quality_change = 0.0;
 
+	//This will only happen when we are on the same cluster.
 	if (cluster[x] == c_ID)
 		return 0;
+	//This will happen for all elements that does not belong to the cluster, this will decrease the quality of the cluster whenever it does not have a point.
 	if (cluster[x] >= 0)
 		quality_change = -1.0* clusterSize[cluster[x]] * sim_Mat[cluster[x]][x] / (clusterSize[cluster[x]] - 1);
-
+	//this will always happen as long as it belongs to a cluster within range.
 	if (c_ID >= 0)
 		quality_change += clusterSize[c_ID] * sim_Mat[c_ID][x] / (clusterSize[c_ID] + 1);
 
 	return quality_change;
 }
 
-void Kmeans::Update_Quality_Change_Mat(Matrix matrix, int c_ID)
-// update the quality_change_matrix for a particular cluster 
+// update the quality_change_matrix for a particular cluster
+void Kmeans::Update_Quality_Change_Mat(Matrix matrix, int c_ID) 
 {
 	int k, i;
 

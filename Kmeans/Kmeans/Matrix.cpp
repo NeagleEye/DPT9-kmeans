@@ -34,7 +34,7 @@ void Matrix::ComputeNormalVector()
 			normalVector[i] += (value[j][i]) * (value[j][i]);
 	}
 }
-
+//add current concept_vector to the original vector
 void Matrix::Ith_Add_CV(int i, double *CV)
 {
 	for (int j = 0; j < n_row_elements; j++)
