@@ -30,7 +30,7 @@ double norm_2(double vec[], int n);
 #pragma endregion
 
 #pragma region GPU Functions
-__global__ void GPU_Func_average_vec(double vec[], int n, int num)
+__global__ void GPU_Func_average_vec(double *vec, int n, int num)
 {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < n)
@@ -38,7 +38,7 @@ __global__ void GPU_Func_average_vec(double vec[], int n, int num)
 		vec[i] = vec[i] / num;
 	}
 }
-void GPU_average_vec(double vec[], int n, int num)
+void GPU_average_vec(double *vec, int n, int num)
 {
 	double *dev_vec;
 	cudaMalloc((void**)&dev_vec, n * sizeof(double));
@@ -54,7 +54,7 @@ void GPU_average_vec(double vec[], int n, int num)
 	cudaFree(dev_vec);
 }
 
-__global__ void GPU_Func_ComputeNormalVector(double normalVector[], const int n_row_elements, const double value[][], int n_col)
+__global__ void GPU_Func_ComputeNormalVector(double *normalVector, const int n_row_elements, double **value, int n_col)
 {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < n_col)
@@ -67,7 +67,15 @@ __global__ void GPU_Func_ComputeNormalVector(double normalVector[], const int n_
 	}
 }
 
-
+__global__ void GPU_Func_Euc_Dis(double *x, int i, double norm_x, double **value, int n_row_elements, double *normalVector, double *dev_result)
+{
+	double result = 0.0;
+	for (int j = 0; j< n_row_elements; j++)
+		result += x[j] * value[j][i];
+	result *= -2.0;
+	result += normalVector[i] + norm_x;
+	dev_result[i] = result;
+}
 #pragma endregion
 
 
@@ -708,6 +716,7 @@ public:
 	//Calculate distance
 	double Euc_Dis(double *x, int i, double norm_x);
 	void Euc_Dis(double *x, double norm_x, double *result);
+	void GPU_Euc_Dis(double *x, double norm_x, double *result);
 	double GetNorm(int i) { return normalVector[i]; }
 private:
 	//Row elements = value value value (3d or) value value (2d can be xd)
@@ -770,7 +779,7 @@ void Matrix::Ith_Add_CV(int i, double *CV) // NIELS: paralleliseret?
 		CV[j] += value[j][i];
 }
 
-double Matrix::Euc_Dis(double *x, int i, double norm_x) // NIELS: paralleliseret?
+double Matrix::Euc_Dis(double *x, int i, double norm_x) // NIELS: ikke smart at paralleliser
 /* Given squared L2-norms of the vecs and v, norm[i] and norm_v,
 compute the Euc-dis between ith vec in the matrix and v,
 result is returned.
@@ -797,7 +806,16 @@ but the abstract class defition needs the parameter of 'norm_x'
 	for (int i = 0; i < n_col; i++)
 		result[i] = Euc_Dis(x, i, norm_x);
 }
+void Matrix::GPU_Euc_Dis(double *x, double norm_x, double *result)
+{
+	double *dev_normalVector;
+	double **dev_value;
 
+
+
+
+	GPU_Func_Euc_Dis << <numberOfBlocks, MaxThreadsPerBlock >> >(x, i, norm_x, value, n_row_elements, normalVector, dev_result);
+}
 
 #pragma endregion
 
