@@ -4,6 +4,11 @@
 #define CUDA_CALLABLE_MEMBER
 #endif 
 
+#pragma region const
+int MaxThreadsPerBlock = 1024; // in CUDA 1.3 and lower it is 512
+
+#pragma endregion
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
@@ -23,6 +28,48 @@ void average_vec(double vec[], int n, int num);
 double norm_2(double vec[], int n);
 
 #pragma endregion
+
+#pragma region GPU Functions
+__global__ void GPU_Func_average_vec(double vec[], int n, int num)
+{
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < n)
+	{
+		vec[i] = vec[i] / num;
+	}
+}
+void GPU_average_vec(double vec[], int n, int num)
+{
+	double *dev_vec;
+	cudaMalloc((void**)&dev_vec, n * sizeof(double));
+
+	cudaMemcpy(dev_vec, vec, n * sizeof(double), cudaMemcpyHostToDevice);
+
+	int numberOfBlocks = ceil(n / MaxThreadsPerBlock); // ceil is there just to be save
+
+	GPU_Func_average_vec << <numberOfBlocks, MaxThreadsPerBlock >> >(dev_vec, n, num);
+
+	cudaMemcpy(vec, dev_vec, n * sizeof(double), cudaMemcpyHostToDevice);
+
+	cudaFree(dev_vec);
+}
+
+__global__ void GPU_Func_ComputeNormalVector(double normalVector[], const int n_row_elements, const double value[][], int n_col)
+{
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < n_col)
+	{
+		normalVector[i] = 0.0;
+		for (int j = 0; j < n_row_elements; j++)
+		{
+			normalVector[i] += (value[j][i]) * (value[j][i]);
+		}
+	}
+}
+
+
+#pragma endregion
+
 
 #pragma region RandomGenerator
 // RandomGenerator.h: interface for the random number generator classes.
@@ -633,103 +680,6 @@ void RandomGenerator_R250::Set(unsigned long int seed)
 
 #pragma endregion
 
-#pragma region class test
-__global__ void addKernel(int *c, const int *a, const int *b)
-{
-	int i = threadIdx.x;
-	c[i] = a[i] + b[i];
-}
-
-class testClass
-{
-public:
-	 testClass();
-	 ~testClass();
-	 cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size);
-
-private:
-
-};
-
-testClass::testClass()
-{
-}
-
-testClass::~testClass()
-{
-}
-
-cudaError_t testClass::addWithCuda(int *c, const int *a, const int *b, unsigned int size)
-{
-	int *dev_a = 0;
-	int *dev_b = 0;
-	int *dev_c = 0;
-	cudaError_t cudaStatus;
-
-	// Choose which GPU to run on, change this on a multi-GPU system.
-	cudaStatus = cudaSetDevice(0);
-
-	// Allocate GPU buffers for three vectors (two input, one output).
-	cudaMalloc((void**)&dev_c, size * sizeof(int));
-	cudaMalloc((void**)&dev_a, size * sizeof(int));
-	cudaMalloc((void**)&dev_b, size * sizeof(int));
-
-	// Copy input vectors from host memory to GPU buffers.
-	cudaMemcpy(dev_a, a, size * sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_b, b, size * sizeof(int), cudaMemcpyHostToDevice);
-
-	// Launch a kernel on the GPU with one thread for each element.
-	addKernel<<<1, size>>>(dev_c, dev_a, dev_b);
-
-	// Check for any errors launching the kernel
-	cudaStatus = cudaGetLastError();
-
-	// cudaDeviceSynchronize waits for the kernel to finish, and returns
-	// any errors encountered during the launch.
-	cudaStatus = cudaDeviceSynchronize();
-
-	// Copy output vector from GPU buffer to host memory.
-	cudaMemcpy(c, dev_c, size * sizeof(int), cudaMemcpyDeviceToHost);
-
-	cudaFree(dev_c);
-	cudaFree(dev_a);
-	cudaFree(dev_b);
-
-	return cudaStatus;
-}
-#pragma endregion
-
-#pragma region main
-int main()
-{
-    const int arraySize = 5;
-    const int a[arraySize] = { 1, 2, 3, 4, 5 };
-    const int b[arraySize] = { 10, 20, 30, 40, 50 };
-    int c[arraySize] = { 0 };
-
-    // Add vectors in parallel.
-	testClass test;
-	cudaError_t cudaStatus = test.addWithCuda(c, a, b, arraySize);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "addWithCuda failed!");
-        return 1;
-    }
-
-    printf("{1,2,3,4,5} + {10,20,30,40,50} = {%d,%d,%d,%d,%d}\n",
-        c[0], c[1], c[2], c[3], c[4]);
-
-    // cudaDeviceReset must be called before exiting in order for profiling and
-    // tracing tools such as Nsight and Visual Profiler to show complete traces.
-    cudaStatus = cudaDeviceReset();
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaDeviceReset failed!");
-        return 1;
-    }
-
-    return 0;
-}
-#pragma endregion
-
 #pragma region Matrix
 class Matrix
 {
@@ -737,6 +687,7 @@ public:
 	Matrix(int row, int col, double **val);
 	~Matrix();
 	void ComputeNormalVector();
+	void GPU_ComputeNormalVector();
 	int GetRows(){ return n_row_elements; };
 	int GetColumns(){ return n_col; };
 
@@ -779,14 +730,13 @@ Matrix::~Matrix()
 	delete[] normalVector;*/
 }
 
-
 void Matrix::ComputeNormalVector()
 {
-	if (normalVector == NULL)
-	{
+	//if (normalVector == NULL) // NIELS: i cuda kan det her nummer ikke bruges, det bliver ikke null men 0xccccc...
+	//{
 		normalVector = new double[n_col];
 		//memory_used += m_col*sizeof(float);
-	}
+	//}
 	for (int i = 0; i < n_col; i++)
 	{
 		normalVector[i] = 0.0;
@@ -794,14 +744,33 @@ void Matrix::ComputeNormalVector()
 			normalVector[i] += (value[j][i]) * (value[j][i]);
 	}
 }
+
+void Matrix::GPU_ComputeNormalVector()
+{
+	double *dev_normalVector;
+	double **dev_value;
+
+	cudaMemcpy(dev_normalVector, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_value, value, n_row_elements * n_col * sizeof(double), cudaMemcpyHostToDevice);
+
+	int numberOfBlocks = ceil(n_col / MaxThreadsPerBlock); // ceil is there just to be save 
+
+	GPU_Func_ComputeNormalVector <<<numberOfBlocks, MaxThreadsPerBlock >>>(dev_normalVector, n_row_elements, dev_value, n_col);
+
+	cudaMemcpy(normalVector, dev_normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice);
+
+	cudaFree(dev_normalVector);
+	cudaFree(dev_value);
+}
+
 //add current concept_vector to the original vector
-void Matrix::Ith_Add_CV(int i, double *CV)
+void Matrix::Ith_Add_CV(int i, double *CV) // NIELS: paralleliseret?
 {
 	for (int j = 0; j < n_row_elements; j++)
 		CV[j] += value[j][i];
 }
 
-double Matrix::Euc_Dis(double *x, int i, double norm_x)
+double Matrix::Euc_Dis(double *x, int i, double norm_x) // NIELS: paralleliseret?
 /* Given squared L2-norms of the vecs and v, norm[i] and norm_v,
 compute the Euc-dis between ith vec in the matrix and v,
 result is returned.
@@ -816,7 +785,7 @@ Used (x-c)^T (x-c) = x^T x - 2 x^T c + c^T c
 	return result;
 }
 
-void Matrix::Euc_Dis(double *x, double norm_x, double *result)
+void Matrix::Euc_Dis(double *x, double norm_x, double *result) // NIELS: paralleliseret?
 /* Given squared L2-norms of the vecs and x, norm[i] and norm_x,
 compute the Euc-dis between each vec in the matrix with x,
 results are stored in array 'result'.
@@ -1038,14 +1007,14 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 				//returning distance between the squared average vector and the average vector to sim_mat
 				if (n_Iters > EST_START)
-				for (i = 0; i<col; i++)
-					sim_Mat[cluster[i]][i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]);
+				for (i = 0; i<col; i++) // NIELS: paralleliseret?
+					sim_Mat[cluster[i]][i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]); 
 				else
 				for (i = 0; i < n_Clusters; i++)
 					matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 			}
 			else
-			for (i = 0; i < n_Clusters; i++)//returning distance between the squared average vector and the average vector to sim_mat
+			for (i = 0; i < n_Clusters; i++)//returning distance between the squared average vector and the average vector to sim_mat // NIELS: paralleliseret?
 				matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 
 			//initialize cluster_quality
@@ -1410,7 +1379,6 @@ void PrintMatrix(Matrix input, int MAX_X, int MAX_Y)
 #pragma endregion
 
 #pragma region MathonVectors
-
 void average_vec(double vec[], int n, int num)
 {
 	int i;
@@ -1431,6 +1399,128 @@ double norm_2(double vec[], int n)
 }
 
 #pragma endregion
+
+#pragma region class test
+__global__ void addKernel(int c[], const int a[], const int b[], int size)
+{
+	int i = threadIdx.x;
+	c[i] = a[i] + b[i] + size;
+}
+
+class testClass
+{
+public:
+	 testClass();
+	 ~testClass();
+	 cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size);
+
+private:
+
+};
+
+testClass::testClass()
+{
+}
+
+testClass::~testClass()
+{
+}
+
+cudaError_t testClass::addWithCuda(int c[], const int a[], const int b[], unsigned int size)
+{
+	int *dev_a = 0;
+	int *dev_b = 0;
+	int *dev_c = 0;
+	cudaError_t cudaStatus;
+
+	// Choose which GPU to run on, change this on a multi-GPU system.
+	cudaStatus = cudaSetDevice(0);
+
+	// Allocate GPU buffers for three vectors (two input, one output).
+	cudaMalloc((void**)&dev_c, size * sizeof(int));
+	cudaMalloc((void**)&dev_a, size * sizeof(int));
+	cudaMalloc((void**)&dev_b, size * sizeof(int));
+
+	// Copy input vectors from host memory to GPU buffers.
+	cudaMemcpy(dev_a, a, size * sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_b, b, size * sizeof(int), cudaMemcpyHostToDevice);
+
+	// Launch a kernel on the GPU with one thread for each element.
+	addKernel << <1, size >> >(dev_c, dev_a, dev_b, size);
+
+	// Check for any errors launching the kernel
+	cudaStatus = cudaGetLastError();
+
+	// cudaDeviceSynchronize waits for the kernel to finish, and returns
+	// any errors encountered during the launch.
+	cudaStatus = cudaDeviceSynchronize();
+
+	// Copy output vector from GPU buffer to host memory.
+	cudaMemcpy(c, dev_c, size * sizeof(int), cudaMemcpyDeviceToHost);
+
+	cudaFree(dev_c);
+	cudaFree(dev_a);
+	cudaFree(dev_b);
+
+	return cudaStatus;
+}
+#pragma endregion
+
+#pragma region main
+void testcode()
+{
+	const int arraySize = 5;
+	const int a[arraySize] = { 1, 2, 3, 4, 5 };
+	const int b[arraySize] = { 10, 20, 30, 40, 50 };
+	int c[arraySize] = { 0 };
+
+	// Add vectors in parallel.
+	testClass test;
+	cudaError_t cudaStatus = test.addWithCuda(c, a, b, arraySize);
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "addWithCuda failed!");
+	}
+
+	printf("{1,2,3,4,5} + {10,20,30,40,50} = {%d,%d,%d,%d,%d}\n",
+		c[0], c[1], c[2], c[3], c[4]);
+
+	// cudaDeviceReset must be called before exiting in order for profiling and
+	// tracing tools such as Nsight and Visual Profiler to show complete traces.
+	cudaStatus = cudaDeviceReset();
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaDeviceReset failed!");
+	}
+}
+
+void kmeanscode()
+{
+	
+	int *cluster, n_clusters = 4;
+	int x = 0, y = 0;
+	Matrix matrix = GetVector(x, y);
+
+	cluster = new int[matrix.GetColumns()];
+	//Initialize Euclidean kmeans
+	Kmeans k(n_clusters, cluster, matrix.GetColumns(), matrix.GetRows());
+	//Calculate normal vectors on every column set.
+	matrix.ComputeNormalVector();
+	k.Initialize_CV(matrix);
+	k.Generel_K_Means(matrix);
+	/*
+	*Printing out the matrix only 2d is available and 2d dataset
+	*/
+	PrintMatrix(matrix, x, y);
+	
+}
+
+int main()
+{
+	testcode();
+	//kmeanscode();
+    return 0;
+}
+#pragma endregion
+
 
 
 #pragma region
