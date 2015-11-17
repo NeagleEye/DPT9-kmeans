@@ -1,5 +1,6 @@
 (module
   (import io)
+  (import random)
 
 	(define-datatype values-t
 	;;Value x y
@@ -42,11 +43,48 @@
 	(+ val val2)))))
 
 	(define (normalvector matvec col)
-	  (let ((normalVector (make-vector col 2)))
+	  (let ((normalVector (make-vector col 1)))
                    (for(i 1 col) 
 		      (set! (vector-ref normalVector i) (NormalVectorCalc (vector-ref matvec i)))
 		    )
 	normalVector))
+
+	(define (VectorInit)
+	(Value 0 0))
+
+	(define (ConceptVectorInit col)
+	  (let ((cVector (make-vector col (VectorInit))))
+                   (for(i 1 col) 
+		      (set! (vector-ref cVector i) (VectorInit))
+		    )
+	cVector))
+
+	(define (ClusterInit col)
+	  (let ((cVector (make-vector col 1)))
+                   (for(i 1 col) 
+		      (set! (vector-ref cVector i) 0)
+		    )
+	cVector))
+
+	(define (AddRandom r cV col);;to be used once...
+          (match (random r)
+          ((RandomResult n r)
+            (set! (vector-ref cV 0) (mod n col))
+          (println* "the random in col is: " (mod n col));;debug
+	cV)))
+
+	(define (getData vector i)
+          (match vector ;;match to a type
+	   ((Value v1 v2)
+        (if(< i 1) v1 v2))))
+
+	(define (VectorAddition vec1 vec2)
+	 (let((v1 (+ (getData vec1 0) (getData vec2 0))) (v2(+ (getData vec1 1) (getData vec2 1))))
+	(Value v1 v2)))	
+
+	(define (IthAddCV i cv matvec)
+	   (set! (vector-ref cv i) (VectorAddition (vector-ref cv i) (vector-ref matvec i)))
+        cv)
 
 	(define (main)
 	  (let((mat (reader)));;now the Matrix is loaded
@@ -54,5 +92,15 @@
 	  (let((col(SetCol(vector-ref mat 0)))) ;; col is set 
 	  (println* "col value is: " col)
 	  (let((normalVector ( normalvector mat col)));; normal vector calculated
-	 0))))
+	  (println* "first normalvector: " (vector-ref normalVector 0) )
+	  (let((conceptVector ( ConceptVectorInit col)));; Conceptvector init
+          (println* "first conceptVector: " (vector-ref conceptVector 0) )
+	  (let((simMat ( ConceptVectorInit col)));; Conceptvector init
+          (println* "first conceptVector: " (vector-ref simMat 0) )
+ 	  (let((cV (ClusterInit 4))) ;;addrandom clustervector 4 clusters
+          (println* "first cV: " (vector-ref cV 0) )
+	  (let((cV (AddRandom (init-rand) cV col)))
+	  (let((conceptVector (IthAddCV (vector-ref cV 0) conceptVector mat)))
+	  (println* "get Data test" (getData (vector-ref mat 0) 1))
+	 0)))))))))
 )
