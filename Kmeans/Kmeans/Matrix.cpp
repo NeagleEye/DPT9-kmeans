@@ -11,6 +11,7 @@ Matrix::Matrix(int row, int col, double **val)
 	n_row_elements = row;
 	n_col = col;
 	value = val;
+	cluster.resize(col);
 }
 
 Matrix::~Matrix()
@@ -67,4 +68,12 @@ but the abstract class defition needs the parameter of 'norm_x'
 {
 	for (int i = 0; i < n_col; i++)
 		result[i] = Euc_Dis(x, i, norm_x);
+}
+
+void Matrix::PassCluster(int clus[])
+{
+	for (int i = 0; i < GetColumns(); i++)
+	{
+		setClusterID(i, clus[i]);
+	}
 }
