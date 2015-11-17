@@ -65,19 +65,19 @@ void PrintMatrix_With_Cluster(Matrix input, int MAX_X, int MAX_Y)
 				int YPosition = input.GetVal(1, position);
 				if (XPosition == i && YPosition == j)
 				{
-					if (true)
+					if (input.getClusterID(position) == 0)
 					{
 						myfile << "255   0   0 ";
 					}
-					else if (true)
+					else if (input.getClusterID(position) == 1)
 					{
 						myfile << "  0 255   0 ";
 					}
-					else if (true)
+					else if (input.getClusterID(position) == 2)
 					{
 						myfile << "  0   0 255 ";
 					}
-					else if (true)
+					else if (input.getClusterID(position) == 3)
 					{
 						myfile << "255 255   0 ";
 					}
