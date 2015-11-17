@@ -1,0 +1,58 @@
+(module
+  (import io)
+
+	(define-datatype values-t
+	;;Value x y
+	(Value int int))
+
+	; Col value on matrix
+	(define (read-matrix f)
+    	(let* ((v1 (file-read-int f))
+           (v2 (file-read-int f)))
+       (Value v1 v2)))
+	
+	(define (setval a b)
+	(Value a b))
+
+	(define (reader)
+	  (let ((f (file-open "AllRandom.mtx" )))
+	        (let ((row (file-read-int f)))
+		(let ((col (file-read-int f)))
+		 (println* "Reading " col " lines.")
+                 (let((first-line (read-matrix f)))
+		  (let ((matrix (make-vector col first-line)))
+		     (set! (vector-ref matrix 0) (setval row col))
+                   (for(i 1 col) 
+		      (set! (vector-ref matrix i) (read-matrix f))
+		    )
+	  (file-close f)
+          ;;The above code is what is required to read a file of .mtx format with row col \n value value \n value value ... row is however omitted here
+	  matrix))))))
+
+	(define (SetCol matvec)
+	  (match matvec ;;match to a type
+	   ((Value v1 v2)
+	  ;; (println* "first element: " v1 " second element: " v2);;debug
+	v2)))
+
+        (define (NormalVectorCalc matvec)
+          (match matvec ;;match to a type
+	   ((Value v1 v2)
+            (let(( val (* v1 v1))(val2 (* v2 v2)))
+	(+ val val2)))))
+
+	(define (normalvector matvec col)
+	  (let ((normalVector (make-vector col 2)))
+                   (for(i 1 col) 
+		      (set! (vector-ref normalVector i) (NormalVectorCalc (vector-ref matvec i)))
+		    )
+	normalVector))
+
+	(define (main)
+	  (let((mat (reader)));;now the Matrix is loaded
+	  (println* "first line: " (vector-ref mat 0) )
+	  (let((col(SetCol(vector-ref mat 0)))) ;; col is set 
+	  (println* "col value is: " col)
+	  (let((normalVector ( normalvector mat col)));; normal vector calculated
+	 0))))
+)
