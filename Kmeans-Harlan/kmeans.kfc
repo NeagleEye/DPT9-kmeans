@@ -4,16 +4,16 @@
 
 	(define-datatype values-t
 	;;Value x y
-	(Value int int))
+	(Value float float))
 
 	; Col value on matrix
 	(define (read-matrix f)
-    	(let* ((v1 (file-read-int f))
-           (v2 (file-read-int f)))
+    	(let* ((v1 (file-read-float f))
+           (v2 (file-read-float f)))
        (Value v1 v2)))
 	
 	(define (setval a b)
-	(Value a b))
+	(Value (int->float a) (int->float b)))
 
 	(define (reader)
 	  (let ((f (file-open "AllRandom.mtx" )))
@@ -34,7 +34,7 @@
 	  (match matvec ;;match to a type
 	   ((Value v1 v2)
 	  ;; (println* "first element: " v1 " second element: " v2);;debug
-	v2)))
+	(float->int v2))))
 
         (define (NormalVectorCalc matvec)
           (match matvec ;;match to a type
@@ -59,24 +59,24 @@
 		    )
 	cVector))
 
-	(define (ClusterInit col)
+	(define (SingleArray col)
 	  (let ((cVector (make-vector col 1)))
                    (for(i 1 col) 
 		      (set! (vector-ref cVector i) 0)
 		    )
 	cVector))
 
-	(define (AddRandom r cV col);;to be used once...
-          (match (random r)
-          ((RandomResult n r)
-            (set! (vector-ref cV 0) (mod n col))
-          (println* "the random in col is: " (mod n col));;debug
-	cV)))
-
 	(define (getData vector i)
           (match vector ;;match to a type
 	   ((Value v1 v2)
         (if(< i 1) v1 v2))))
+
+	(define (AddRandom r cV col);;to be used once...
+          (match (random r)
+          ((RandomResult n r)
+            (set! (vector-ref cV 0) (mod n col))
+          ;(println* "the random in col is: " (mod n col));;debug
+	cV)))
 
 	(define (VectorAddition vec1 vec2)
 	 (let((v1 (+ (getData vec1 0) (getData vec2 0))) (v2(+ (getData vec1 1) (getData vec2 1))))
@@ -86,21 +86,58 @@
 	   (set! (vector-ref cv i) (VectorAddition (vector-ref cv i) (vector-ref matvec i)))
         cv)
 
+	(define (EucDistance x1 x2 v1 v2 norm normalVector)
+	  (let((result0(* x1 v1))(result1(* x2 v2)))
+	   (let((normresult(+ normalVector (int->float norm))))
+	    (let((result2(+ result0 result1)))
+	    (let((result4(* result2 -2.0)))  
+	(+ result4 normresult))))))
+
+	(define (PreEucDistance sim data normal normalVector mat)
+	(match data
+	((Value data1 data2)
+	(match mat
+	((Value val1 val2)	 
+         (EucDistance data1 data2 val1 val2 normal normalVector)
+          0)))))
+
+	(define (EucDis result normal data col normalVector mat cluster)
+	   (for(i 0 col)
+	     (set! (vector-ref result (* i cluster)) (PreEucDistance result data normal normalVector mat) )	
+	   )
+		result)
+
+	;;                 sim i inputvector conceptvector col normalvector values
+	(define (PreEucDis result i normal data col normalVector mat cluster)
+	    	(EucDis result (vector-ref normal i) (vector-ref data i) col (vector-ref normalVector i) (vector-ref mat i) cluster))
+
+	(define (setVectorData vectordat i vectorData)
+	   (set! (vector-ref vectordat i) vectorData )
+        vectordat)
+
 	(define (main)
 	  (let((mat (reader)));;now the Matrix is loaded
 	  (println* "first line: " (vector-ref mat 0) )
+	  (let((clusterint(+ 4 0)))
 	  (let((col(SetCol(vector-ref mat 0)))) ;; col is set 
 	  (println* "col value is: " col)
 	  (let((normalVector ( normalvector mat col)));; normal vector calculated
 	  (println* "first normalvector: " (vector-ref normalVector 0) )
+	  (let((nVzero(vector-ref normalVector 0)))
 	  (let((conceptVector ( ConceptVectorInit col)));; Conceptvector init
           (println* "first conceptVector: " (vector-ref conceptVector 0) )
-	  (let((simMat ( ConceptVectorInit col)));; Conceptvector init
+	  ;;Will handle the simMat with an offset instead
+	  (let((simMat ( SingleArray (* col clusterint))));; Conceptvector init
           (println* "first conceptVector: " (vector-ref simMat 0) )
- 	  (let((cV (ClusterInit 4))) ;;addrandom clustervector 4 clusters
+ 	  (let((cV (SingleArray clusterint))) ;;addrandom clustervector 4 clusters
           (println* "first cV: " (vector-ref cV 0) )
 	  (let((cV (AddRandom (init-rand) cV col)))
 	  (let((conceptVector (IthAddCV (vector-ref cV 0) conceptVector mat)))
 	  (println* "get Data test" (getData (vector-ref mat 0) 1))
-	 0)))))))))
+	  ;;timer should be inserted when the Kmeans algorithm actually starts.
+	  (let((normalCV (SingleArray col))) ;; init normal_cv
+          (println* "first cV: " (vector-ref cV 0) " still working ?" )
+	  (let((normalCV (setVectorData normalCV 0 (float->int nVzero))))
+	  (let((simMat ( PreEucDis simMat 0 normalCV conceptVector col normalVector mat 1)))
+	 0))))))))))))))
 )
