@@ -12,6 +12,9 @@
            (v2 (file-read-float f)))
        (Value v1 v2)))
 	
+	(define (dummyread)
+	(Value 0 0))
+	
 	(define (setval a b)
 	(Value (int->float a) (int->float b)))
 
@@ -20,15 +23,21 @@
 	        (let ((row (file-read-int f)))
 		(let ((col (file-read-int f)))
 		 (println* "Reading " col " lines.")
-                 (let((first-line (read-matrix f)))
-		  (let ((matrix (make-vector col first-line)))
-		     (set! (vector-ref matrix 0) (setval row col))
-                   (for(i 1 col) 
+                 ;(let((first-line (read-matrix f)))
+		  (let ((matrix (make-vector col (dummyread))))
+                   (for(i 0 col) 
 		      (set! (vector-ref matrix i) (read-matrix f))
 		    )
 	  (file-close f)
           ;;The above code is what is required to read a file of .mtx format with row col \n value value \n value value ... row is however omitted here
-	  matrix))))))
+	  matrix)))));)
+
+	 (define (readerCol)
+	  (let ((f (file-open "AllRandom.mtx" )))
+	  (let ((row (file-read-int f)))
+	  (let ((col (file-read-int f)))
+          (file-close f)
+	 col))))
 
 	(define (SetCol matvec)
 	  (match matvec ;;match to a type
@@ -44,7 +53,7 @@
 
 	(define (normalvector matvec col)
 	  (let ((normalVector (make-vector col 1)))
-                   (for(i 1 col) 
+                   (for(i 0 col) 
 		      (set! (vector-ref normalVector i) (NormalVectorCalc (vector-ref matvec i)))
 		    )
 	normalVector))
@@ -54,14 +63,14 @@
 
 	(define (ConceptVectorInit col)
 	  (let ((cVector (make-vector col (VectorInit))))
-                   (for(i 1 col) 
+                   (for(i 0 col) 
 		      (set! (vector-ref cVector i) (VectorInit))
 		    )
 	cVector))
 
 	(define (SingleArray col)
 	  (let ((cVector (make-vector col 1)))
-                   (for(i 1 col) 
+                   (for(i 0 col) 
 		      (set! (vector-ref cVector i) 0)
 		    )
 	cVector))
@@ -119,7 +128,7 @@
 	  (let((mat (reader)));;now the Matrix is loaded
 	  (println* "first line: " (vector-ref mat 0) )
 	  (let((clusterint(+ 4 0)))
-	  (let((col(SetCol(vector-ref mat 0)))) ;; col is set 
+	  (let((col(readerCol))) ;; col is set 
 	  (println* "col value is: " col)
 	  (let((normalVector ( normalvector mat col)));; normal vector calculated
 	  (println* "first normalvector: " (vector-ref normalVector 0) )
@@ -138,6 +147,48 @@
 	  (let((normalCV (SingleArray col))) ;; init normal_cv
           (println* "first cV: " (vector-ref cV 0) " still working ?" )
 	  (let((normalCV (setVectorData normalCV 0 (float->int nVzero))))
-	  (let((simMat ( PreEucDis simMat 0 normalCV conceptVector col normalVector mat 1)))
-	 0))))))))))))))
+	  (let((simMat (PreEucDis simMat 0 normalCV conceptVector col normalVector mat 1)))
+
+	  (let((minind(* 1 0)))
+	  (let((mind(* 1 0)))
+	  (let((cossum(* 1 0)))
+
+	  (for(i 0 clusterint)
+	    (set! minind 0)
+	    (set! mind 0)
+	    (for(j 0 col)
+	      (set! cossum 0)
+	      (for(k 0 i)
+	        (+ cossum (vector-ref simMat (* j k)))
+	      )
+	      (if(> cossum mind)
+	       (set! mind cossum))
+	      (if(> cossum mind)
+	       (set! minind j))
+	    )
+	    (set! (vector-ref cV i) minind)
+	    (set! conceptVector (IthAddCV (vector-ref cV i) conceptVector mat))
+	    (set! (vector-ref normalCV i) (float->int (vector-ref normalVector (vector-ref cV i))))
+	    (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat i))
+	  )
+	  
+	  (let((clusterpointer(SingleArray col)))
+	  ;InitAssignCluster as I cannot find where to return multiple data without the need to split them afterwards I will make them in main but not optimal. changed is for later just implemented now to copy paste
+          (println* "We are still alive before assign")
+	  (let((multi 0) (tempCluster 0) (tempSim 0) (changed 0))
+	  (for(i 0 col)
+	    (for(j 0 clusterint)
+	      (if(= j (vector-ref clusterpointer i)) 0 (set! multi (+ multi 1)) )
+	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i j)) tempSim) (set! tempCluster j)) )	      
+	     (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i j)) tempSim) (set! tempSim (vector-ref simMat (* i j)))) )
+	    ) 
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref simMat (* tempCluster i)) tempSim) )
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! changed (+ changed 1)) ) 
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref clusterpointer i) tempCluster) )
+	  )
+	(println* "still alive after assignment" )
+
+	;last of initial, resetting and extra methods
+	(set! conceptVector ( ConceptVectorInit col))
+	 0))))))))))))))))))))
 )
