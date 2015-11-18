@@ -1,0 +1,29 @@
+;; Vector sum
+(module
+  (extern time-s () -> float)
+
+  (define (add-vectors xs ys)
+    (kernel ((x xs) (y ys)) (+ x y)))
+  
+  (define (bench_length len)
+    (let ((xs (make-vector len 1.0))
+          (ys (make-vector len 1.0)))
+       (println* "Created vectors: lengths " (length xs) " " (length ys))
+      (let* ((start (nanotime))
+             (sum (add-vectors xs ys))
+             (stop (nanotime)))
+		(- stop start))))
+    
+  (define (main)
+    ;; From 1M to 20M elements:
+    (for (i 1 21)
+	   (let ((time 0)
+                 (globalstart (nanotime)))
+                 ;; Add each vector 10 times:
+	         (for (j 0 10)
+	           (set! time (+ time (bench_length (* i 1000000)))))
+                 (println* "ARG_AND_SELFTIMED: " i "\t" (/ (u64->float (/ time 100)) 1e7))
+                 (println* "  total test time, ten rounds, with transfers: " (/ (u64->float (/ (- (nanotime) globalstart) 100)) 1e6));; NeagleEye for some reason they used 1000 but 1000 should be used to show seconds
+    ))
+
+    0))
