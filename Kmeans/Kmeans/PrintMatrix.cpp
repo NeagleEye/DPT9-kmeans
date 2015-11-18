@@ -44,3 +44,65 @@ void PrintMatrix(Matrix input, int MAX_X, int MAX_Y)
 	myfile.close();
 
 }
+
+void PrintMatrix_With_Cluster(Matrix input, int MAX_X, int MAX_Y)
+{
+	std::ofstream myfile;
+	myfile.open("exampleCluster.txt");
+	myfile << "P3\n";
+	myfile << MAX_X << " " << MAX_Y << "\n";
+	int test = input.GetColumns();
+	int position = 0;
+	bool noMorePoints = false;
+	std::vector<std::string> color = {"255 255 255 ", "255   0   0 ", "0 255   0 ", "0   0 255 ", "255 255   0 ", "0   0   0 " };
+	for (int i = 0; i < MAX_Y; i++)
+	{
+		for (int j = 0; j < MAX_X; j++)
+		{
+			if (!noMorePoints)
+			{
+				int XPosition = input.GetVal(0, position);
+				int YPosition = input.GetVal(1, position);
+				if (XPosition == i && YPosition == j)
+				{
+					if (input.getClusterID(position) == 0)
+					{
+						myfile << "255   0   0 ";
+					}
+					else if (input.getClusterID(position) == 1)
+					{
+						myfile << "  0 255   0 ";
+					}
+					else if (input.getClusterID(position) == 2)
+					{
+						myfile << "  0   0 255 ";
+					}
+					else if (input.getClusterID(position) == 3)
+					{
+						myfile << "255 255   0 ";
+					}
+					else
+					{
+						myfile << "  0   0   0 ";
+					}
+					position++;
+				}
+				else
+				{
+					myfile << "255 255 255 ";
+				}
+				if (position >= input.GetColumns())
+				{
+					noMorePoints = true;
+				}
+			}
+			else
+			{
+				myfile << "0 ";
+			}
+		}
+		myfile << "\n";
+	}
+	myfile.close();
+
+}

@@ -67,14 +67,18 @@ __global__ void GPU_Func_ComputeNormalVector(double *normalVector, const int n_r
 	}
 }
 
-__global__ void GPU_Func_Euc_Dis(double *x, int i, double norm_x, double **value, int n_row_elements, double *normalVector, double *dev_result)
+__global__ void GPU_Func_Euc_Dis(double *x, double norm_x, double **value, int n_row_elements, double *normalVector, double *dev_result, int n_col)
 {
-	double result = 0.0;
-	for (int j = 0; j< n_row_elements; j++)
-		result += x[j] * value[j][i];
-	result *= -2.0;
-	result += normalVector[i] + norm_x;
-	dev_result[i] = result;
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < n_col)
+	{
+		double result = 0.0;
+		for (int j = 0; j < n_row_elements; j++)
+			result += x[j] * value[j][i];
+		result *= -2.0;
+		result += normalVector[i] + norm_x;
+		dev_result[i] = result;
+	}
 }
 #pragma endregion
 
@@ -806,15 +810,26 @@ but the abstract class defition needs the parameter of 'norm_x'
 	for (int i = 0; i < n_col; i++)
 		result[i] = Euc_Dis(x, i, norm_x);
 }
+
 void Matrix::GPU_Euc_Dis(double *x, double norm_x, double *result)
 {
-	double *dev_normalVector;
+	double *dev_X;
+	double *dev_Result;
 	double **dev_value;
 
+	cudaMemcpy(dev_X, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice); // NIELS: IKKE HELT SIKKER PÅ STØRRELSERNE HER
+	cudaMemcpy(dev_Result, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice); // NIELS: IKKE HELT SIKKER PÅ STØRRELSERNE HER
+	cudaMemcpy(dev_value, value, n_row_elements * n_col * sizeof(double), cudaMemcpyHostToDevice);
 
+	int numberOfBlocks = ceil(n_col / MaxThreadsPerBlock); // ceil is there just to be save
 
+	GPU_Func_Euc_Dis << <numberOfBlocks, MaxThreadsPerBlock >> >(x, norm_x, dev_value, n_row_elements, normalVector, dev_Result, n_col);
 
-	GPU_Func_Euc_Dis << <numberOfBlocks, MaxThreadsPerBlock >> >(x, i, norm_x, value, n_row_elements, normalVector, dev_result);
+	cudaMemcpy(result, dev_Result, n_col * sizeof(double), cudaMemcpyHostToDevice);
+
+	cudaFree(dev_X);
+	cudaFree(dev_Result);
+	cudaFree(dev_value);
 }
 
 #pragma endregion
@@ -988,7 +1003,9 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 			stabilized = true;
 
 		//If there is no new assignment we have finished clustering.
-		if (Assign_Cluster(matrix, stabilized) == 0){}
+		if (Assign_Cluster(matrix, stabilized) == 0){ 
+			int lala = 0; 
+		}
 		else
 		{
 			/*There was an assignment thus we have to compute new centroids and update the size of each cluster,
@@ -1534,7 +1551,7 @@ void kmeanscode()
 int main()
 {
 	testcode();
-	//kmeanscode();
+	kmeanscode();
     return 0;
 }
 #pragma endregion

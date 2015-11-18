@@ -33,6 +33,9 @@ public:
 	double Euc_Dis(double *x, int i, double norm_x);
 	void Euc_Dis(double *x, double norm_x, double *result);
 	double GetNorm(int i) { return normalVector[i]; }
+	void PassCluster(int *clus);
+	int getClusterID(int position){ return cluster[position]; };
+	void setClusterID(int position, int value){ cluster[position] = value; }
 private:
 	//Row elements = value value value (3d or) value value (2d can be xd)
 	//Column how many datasets is in the dataset
@@ -40,4 +43,6 @@ private:
 	//**value = value[row][col] (rowth element, column)
 	//normalVector = normalvector over row of elements (vector)
 	double **value, *normalVector;
+	//This next part is just to split up the cluster visually
+	std::vector<int> cluster;
 };

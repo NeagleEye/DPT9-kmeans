@@ -59,7 +59,7 @@ Kmeans::~Kmeans()
 
 }
 
-void Kmeans::Generel_K_Means(Matrix matrix)
+Matrix Kmeans::Generel_K_Means(Matrix matrix)
 {
 	//Kmeans will only work with its assigned values, whereas gmeans can modify kmeans.
 	int n_Iters, i, j;
@@ -152,6 +152,8 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 		for (i = 0; i<n_Clusters; i++)
 			Update_Quality_Change_Mat(matrix, i);
 
+	matrix.PassCluster(cluster);
+	return matrix;
 }
 
 int Kmeans::Assign_Cluster(Matrix matrix, bool stabilized)

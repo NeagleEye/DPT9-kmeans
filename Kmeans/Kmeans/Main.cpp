@@ -15,14 +15,16 @@ int main()
 	cluster = new int[matrix.GetColumns()];
 	//Initialize Euclidean kmeans
 	Kmeans k(n_clusters,cluster, matrix.GetColumns(), matrix.GetRows());
+
 	//Calculate normal vectors on every column set.
 	matrix.ComputeNormalVector();
 	k.Initialize_CV(matrix);
-	k.Generel_K_Means(matrix);
+	matrix = k.Generel_K_Means(matrix);
+	cout << matrix.getClusterID(0) << endl;
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
 	PrintMatrix(matrix,x,y);
-
+	PrintMatrix_With_Cluster(matrix, x, y);
 	return 0;
 }

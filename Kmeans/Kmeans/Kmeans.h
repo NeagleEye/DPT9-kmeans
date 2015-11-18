@@ -20,7 +20,7 @@ public:
 	//seperate the centroids of the concept vectors
 	void Well_Separated_Centroids(Matrix matrix);
 	//The generel K means, assign -> update until no new assignments
-	void Generel_K_Means(Matrix matrix);
+	Matrix Generel_K_Means(Matrix matrix);
 	//Compute the size of the cluster (how many point are pointing to a specific cluster)
 	void Compute_Cluster_Size();
 	//Coherence is based on the total cluster quality
