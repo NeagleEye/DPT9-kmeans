@@ -157,27 +157,23 @@
 ;	
 ;;as there is no do while all code will be repeated before the while
 ;
-
-         (set! pre_result result)
+	 (set! pre_result result)
 	   (set! niter (+ niter 1))
 	   ;;ASSIGN START
 	  
-	  (for(i 0 clusterint)
-	    (for(j 0 col)
-	      (if(= i (vector-ref clusterpointer j)) 0 (set! (vector-ref simMat (* (+ i 1) j)) (- (vector-ref difference i) (* 2 (* (sqrt (vector-ref difference i)) (sqrt (vector-ref simMat (* (+ i 1) j))) ))    )      )   )
-	  ) )
-	   
+	   (set! multi 0) (set! tempCluster 0) (set! changed 0) (set! tempSim 0)
+
 	  (for(i 0 col)
 	    (for(j 0 clusterint)
 	      (if(= j (vector-ref clusterpointer i)) 0 (set! multi (+ multi 1)) )
-	      (if(= j (vector-ref clusterpointer i)) 0 (set! (vector-ref simMat (* i (+ j 1))) (PreEucDistance simMat (vector-ref conceptVector j) (vector-ref normalCV j) (vector-ref normalVector i) (vector-ref mat i) ) ) )
 	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempCluster j)) )	      
-	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempSim (vector-ref simMat (* i (+ j 1))))) )
+	     (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempSim (vector-ref simMat (* i (+ j 1))))) )
 	    ) 
 	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref simMat (* (+ tempCluster 1) i)) tempSim) )
 	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! changed (+ changed 1)) ) 
 	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref clusterpointer i) tempCluster) )
 	  )
+	  (println* "was anything changed ?" changed)
 	  ;; ASSIGN END
 	  (if(= changed 0) 0 (for(one 0 1)
 	  ;;ELSE (simulated with for loop because i could not create a body with parenthesis)
@@ -217,6 +213,7 @@
 	  (set! result (Coherence clusterint clusterquality))
 
 	 )) ;; if end do not remove
+
 ;
 ;
 ;       THE WHILE START NOW
@@ -227,17 +224,13 @@
 	   (set! niter (+ niter 1))
 	   ;;ASSIGN START
 	  
-	  (for(i 0 clusterint)
-	    (for(j 0 col)
-	      (if(= i (vector-ref clusterpointer j)) 0 (set! (vector-ref simMat (* (+ i 1) j)) (- (vector-ref difference i) (* 2 (* (sqrt (vector-ref difference i)) (sqrt (vector-ref simMat (* (+ i 1) j))) ))    )      )   )
-	  ) )
-	   
+	   (set! multi 0) (set! tempCluster 0) (set! changed 0) (set! tempSim 0)
+
 	  (for(i 0 col)
 	    (for(j 0 clusterint)
 	      (if(= j (vector-ref clusterpointer i)) 0 (set! multi (+ multi 1)) )
-	      (if(= j (vector-ref clusterpointer i)) 0 (set! (vector-ref simMat (* i (+ j 1))) (PreEucDistance simMat (vector-ref conceptVector j) (vector-ref normalCV j) (vector-ref normalVector i) (vector-ref mat i) ) ) )
 	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempCluster j)) )	      
-	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempSim (vector-ref simMat (* i (+ j 1))))) )
+	     (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempSim (vector-ref simMat (* i (+ j 1))))) )
 	    ) 
 	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref simMat (* (+ tempCluster 1) i)) tempSim) )
 	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! changed (+ changed 1)) ) 
@@ -283,7 +276,7 @@
 
 	 )) ;; if end do not remove
          ) ;; while end do not remove
-	(println* "was anything changed ?" changed)
+	
 	(println* "done")
 	0)))
 
@@ -341,17 +334,27 @@
 	  (let((multi 0) (tempCluster 0) (tempSim 0) (changed 0))
 
 	  (for(i 0 col)
+	    (set! tempCluster (vector-ref clusterpointer i))
+	    (set! tempSim (vector-ref simMat (* i (+ (vector-ref clusterpointer i) 1))))
 	    (for(j 0 clusterint)
-	      (if(= j (vector-ref clusterpointer i)) 0 (set! multi (+ multi 1)) )
-	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempCluster j)) )	      
-	     (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempSim (vector-ref simMat (* i (+ j 1))))) )
+	      (if(= j (vector-ref clusterpointer i)) 0 
+	        (for(one 0 1)
+		    (if(< (vector-ref simMat (* i (+ j 1))) tempSim) 
+		      (for(two 0 1)
+			(set! tempCluster j)
+			(set! tempSim (vector-ref simMat (* i (+ j 1))))			
+			))
+	        ))
 	    ) 
-	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref simMat (* (+ tempCluster 1) i)) tempSim) )
-	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! changed (+ changed 1)) ) 
-	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref clusterpointer i) tempCluster) )
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 
+	      (for(three 0 1)
+		(set! (vector-ref simMat (* (+ tempCluster 1) i)) tempSim)
+		(set! changed (+ changed 1))
+	        (set! (vector-ref clusterpointer i) tempCluster)
+	      ))
 	  )
 	(println* "still alive after assignment" )
-
+        (println* "was anything changed ?" changed)
 	;last of initial, resetting and extra methods
 	(set! conceptVector ( ConceptVectorInit col))
 
