@@ -152,9 +152,76 @@
 	value))
 
 	(define (Kmeans-Algorithm mat clusterint col normalVector result conceptVector simMat cV normalCV pointsinCluster clusterpointer clusterquality initialobjval threshold)
-	 (let((niter 0) (noassign #t) (pre_result 0.0) (eststart 5) )
+	 (let((niter 0) (noassign #t) (pre_result 0.0) (eststart 5) (k 0))
 	 (let((multi 0) (tempCluster 0) (tempSim 0) (changed 0) (difference (FloatArray clusterint)))
-	;;as there is no do while all code will be repeated before the while
+;	
+;;as there is no do while all code will be repeated before the while
+;
+
+         (set! pre_result result)
+	   (set! niter (+ niter 1))
+	   ;;ASSIGN START
+	  
+	  (for(i 0 clusterint)
+	    (for(j 0 col)
+	      (if(= i (vector-ref clusterpointer j)) 0 (set! (vector-ref simMat (* (+ i 1) j)) (- (vector-ref difference i) (* 2 (* (sqrt (vector-ref difference i)) (sqrt (vector-ref simMat (* (+ i 1) j))) ))    )      )   )
+	  ) )
+	   
+	  (for(i 0 col)
+	    (for(j 0 clusterint)
+	      (if(= j (vector-ref clusterpointer i)) 0 (set! multi (+ multi 1)) )
+	      (if(= j (vector-ref clusterpointer i)) 0 (set! (vector-ref simMat (* i (+ j 1))) (PreEucDistance simMat (vector-ref conceptVector j) (vector-ref normalCV j) (vector-ref normalVector i) (vector-ref mat i) ) ) )
+	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempCluster j)) )	      
+	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempSim (vector-ref simMat (* i (+ j 1))))) )
+	    ) 
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref simMat (* (+ tempCluster 1) i)) tempSim) )
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! changed (+ changed 1)) ) 
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref clusterpointer i) tempCluster) )
+	  )
+	  ;; ASSIGN END
+	  (if(= changed 0) 0 (for(one 0 1)
+	  ;;ELSE (simulated with for loop because i could not create a body with parenthesis)
+	  (set! noassign #f)
+	  
+	  (set! pointsinCluster(ClusterSize pointsinCluster clusterpointer clusterint col))
+
+	  ;;UpdateCentroid
+	  (set! conceptVector (ConceptVectorInit clusterint) )
+	  (for(i 0 col)
+	    (set! (vector-ref conceptVector (vector-ref clusterpointer i)) (IthAddCV i (vector-ref conceptVector (vector-ref clusterpointer i)) mat )   )
+	  )
+	  ;;updateCentroid DONE
+
+	  (for(i 0 clusterint)
+	    (set! (vector-ref conceptVector i) (averageVector (vector-ref conceptVector i) (vector-ref pointsinCluster i) ))  
+	  )
+
+	  (for(i 0 clusterint)
+	    (set! (vector-ref normalCV i) (norm2 (vector-ref conceptVector i)))
+	  )
+	
+	  ;	   
+	  ; If iterations go above 5 we need to implement the use of oldvectors to create a bigger difference
+	  ;
+
+	  (for(i 0 clusterint)
+	    (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat 1))
+	  )
+
+	  (set! clusterquality (FloatArray clusterint))
+	  (for(i 0 col)
+	    (set! k (vector-ref clusterpointer i))
+	    (set! clusterquality (clusterQ clusterquality k i simMat) )
+	  )
+
+	  (set! result (Coherence clusterint clusterquality))
+
+	 )) ;; if end do not remove
+;
+;
+;       THE WHILE START NOW
+;
+;
 	 (while (> (- pre_result result) (* initialobjval 0.001))
 	   (set! pre_result result)
 	   (set! niter (+ niter 1))
@@ -177,20 +244,47 @@
 	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref clusterpointer i) tempCluster) )
 	  )
 	  ;; ASSIGN END
-	
+	  (if(= changed 0) 0 (for(one 0 1)
+	  ;;ELSE (simulated with for loop because i could not create a body with parenthesis)
 	  (set! noassign #f)
 	  
+	  (set! pointsinCluster(ClusterSize pointsinCluster clusterpointer clusterint col))
+
 	  ;;UpdateCentroid
 	  (set! conceptVector (ConceptVectorInit clusterint) )
 	  (for(i 0 col)
 	    (set! (vector-ref conceptVector (vector-ref clusterpointer i)) (IthAddCV i (vector-ref conceptVector (vector-ref clusterpointer i)) mat )   )
 	  )
 	  ;;updateCentroid DONE
-	  
-	 ;  (if() 0 (for(one 0 1)
-	 ;))
-         )
+
+	  (for(i 0 clusterint)
+	    (set! (vector-ref conceptVector i) (averageVector (vector-ref conceptVector i) (vector-ref pointsinCluster i) ))  
+	  )
+
+	  (for(i 0 clusterint)
+	    (set! (vector-ref normalCV i) (norm2 (vector-ref conceptVector i)))
+	  )
 	
+	  ;	   
+	  ; If iterations go above 5 we need to implement the use of oldvectors to create a bigger difference
+	  ;
+
+	  (for(i 0 clusterint)
+	    (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat 1))
+	  )
+
+	  (set! clusterquality (FloatArray clusterint))
+	  (for(i 0 col)
+	    (set! k (vector-ref clusterpointer i))
+	    (set! clusterquality (clusterQ clusterquality k i simMat) )
+	  )
+
+	  (set! result (Coherence clusterint clusterquality))
+
+	 )) ;; if end do not remove
+         ) ;; while end do not remove
+	(println* "was anything changed ?" changed)
+	(println* "done")
 	0)))
 
 	(define (main)
