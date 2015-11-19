@@ -153,6 +153,9 @@
 	 (set! value (+ (vector-ref CQ i) value)) )	
 	value))
 
+	(define (Kmeans-Algorithm mat clusterint col normalVector result conceptVector simMat cV normalCV pointsinCluster clusterpointer clusterquality initialobjval threshold)
+	0)
+
 	(define (main)
 	  (let((mat (reader)));;now the Matrix is loaded
 	  (println* "first line: " (vector-ref mat 0) )
@@ -248,6 +251,8 @@
 
 	(let( (initialobjval (Coherence clusterint clusterquality)) (result (Coherence clusterint clusterquality)) (delta 0.000001) )
 	(let( (threshold (*(* -1.0 initialobjval) delta))   )
+
+	(Kmeans-Algorithm mat clusterint col normalVector result conceptVector simMat cV normalCV pointsinCluster clusterpointer clusterquality initialobjval threshold)
 
 	0))))))))) )))))) ) )) ) ));;the weird spacing is just to have control over how many parenthesis that have been used.
 
