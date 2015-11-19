@@ -74,7 +74,7 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 		n_Iters++;
 
 		//If there is no new assignment we have finished clustering.
-		if (Assign_Cluster(matrix) == 0){}
+		if (InitAssignCluster(matrix) == 0){}
 		else
 		{
 			/*There was an assignment thus we have to compute new centroids and update the size of each cluster,
