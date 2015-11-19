@@ -92,8 +92,7 @@
 	(Value v1 v2)))	
 
 	(define (IthAddCV i cv matvec)
-	   (set! (vector-ref cv i) (VectorAddition (vector-ref cv i) (vector-ref matvec i)))
-        cv)
+	   (VectorAddition cv (vector-ref matvec i)))
 
 	(define (EucDistance x1 x2 v1 v2 norm normalVector)
 	  (let((result0(* x1 v1))(result1(* x2 v2)))
@@ -107,8 +106,7 @@
 	((Value data1 data2)
 	(match mat
 	((Value val1 val2)	 
-         (EucDistance data1 data2 val1 val2 normal normalVector)
-          0)))))
+         (EucDistance data1 data2 val1 val2 normal normalVector) )))))
 
 	(define (EucDis result normal data col normalVector mat cluster)
 	   (for(i 0 col)
@@ -144,7 +142,7 @@
 	(+ t1 t2) ))))
 
 	(define (clusterQ CQ clusterPointer i simMat)
-	  (set! (vector-ref CQ clusterPointer) (vector-ref simMat (* clusterPointer i) ) )
+	  (set! (vector-ref CQ clusterPointer) (vector-ref simMat (* (+ clusterPointer 1) i) ) )
 	CQ)
 
 	(define (Coherence clusterInt CQ)
@@ -154,7 +152,46 @@
 	value))
 
 	(define (Kmeans-Algorithm mat clusterint col normalVector result conceptVector simMat cV normalCV pointsinCluster clusterpointer clusterquality initialobjval threshold)
-	0)
+	 (let((niter 0) (noassign #t) (pre_result 0.0) (eststart 5) )
+	 (let((multi 0) (tempCluster 0) (tempSim 0) (changed 0) (difference (FloatArray clusterint)))
+	;;as there is no do while all code will be repeated before the while
+	 (while (> (- pre_result result) (* initialobjval 0.001))
+	   (set! pre_result result)
+	   (set! niter (+ niter 1))
+	   ;;ASSIGN START
+	  
+	  (for(i 0 clusterint)
+	    (for(j 0 col)
+	      (if(= i (vector-ref clusterpointer j)) 0 (set! (vector-ref simMat (* (+ i 1) j)) (- (vector-ref difference i) (* 2 (* (sqrt (vector-ref difference i)) (sqrt (vector-ref simMat (* (+ i 1) j))) ))    )      )   )
+	  ) )
+	   
+	  (for(i 0 col)
+	    (for(j 0 clusterint)
+	      (if(= j (vector-ref clusterpointer i)) 0 (set! multi (+ multi 1)) )
+	      (if(= j (vector-ref clusterpointer i)) 0 (set! (vector-ref simMat (* i (+ j 1))) (PreEucDistance simMat (vector-ref conceptVector j) (vector-ref normalCV j) (vector-ref normalVector i) (vector-ref mat i) ) ) )
+	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempCluster j)) )	      
+	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempSim (vector-ref simMat (* i (+ j 1))))) )
+	    ) 
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref simMat (* (+ tempCluster 1) i)) tempSim) )
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! changed (+ changed 1)) ) 
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref clusterpointer i) tempCluster) )
+	  )
+	  ;; ASSIGN END
+	
+	  (set! noassign #f)
+	  
+	  ;;UpdateCentroid
+	  (set! conceptVector (ConceptVectorInit clusterint) )
+	  (for(i 0 col)
+	    (set! (vector-ref conceptVector (vector-ref clusterpointer i)) (IthAddCV i (vector-ref conceptVector (vector-ref clusterpointer i)) mat )   )
+	  )
+	  ;;updateCentroid DONE
+	  
+	 ;  (if() 0 (for(one 0 1)
+	 ;))
+         )
+	
+	0)))
 
 	(define (main)
 	  (let((mat (reader)));;now the Matrix is loaded
@@ -165,7 +202,7 @@
 	  (let((normalVector ( normalvector mat col)));; normal vector calculated
 	  (println* "first normalvector: " (vector-ref normalVector 0) )
 	  (let((nVzero(vector-ref normalVector 0)))
-	  (let((conceptVector ( ConceptVectorInit col)));; Conceptvector init
+	  (let((conceptVector ( ConceptVectorInit clusterint)));; Conceptvector init
           (println* "first conceptVector: " (vector-ref conceptVector 0) )
 	  ;;Will handle the simMat with an offset instead
 	  (let((simMat ( FloatArray (* col clusterint))));; Conceptvector init
@@ -174,7 +211,7 @@
           (println* "first cV: " (vector-ref cV 0) )
 
 	  (let((cV (AddRandom (init-rand) cV col)))
-	  (let((conceptVector (IthAddCV (vector-ref cV 0) conceptVector mat)))
+	  (set! (vector-ref conceptVector 0) (IthAddCV (vector-ref cV 0) (vector-ref conceptVector 0) mat)))
 	  (println* "get Data test" (getData (vector-ref mat 0) 1))
 	  ;;timer should be inserted when the Kmeans algorithm actually starts.
 	  (let((normalCV (FloatArray col))) ;; init normal_cv
@@ -191,7 +228,7 @@
 	    (for(j 0 col)
 	      (set! cossum 0)
 	      (for(k 0 i)
-	        (+ cossum (vector-ref simMat (* j k)))
+	        (+ cossum (vector-ref simMat (* j (+ k 1))))
 	      )
 	      (if(> cossum mind)
 	       (set! mind cossum))
@@ -199,9 +236,9 @@
 	       (set! minind j))
 	    )
 	    (set! (vector-ref cV i) minind)
-	    (set! conceptVector (IthAddCV (vector-ref cV i) conceptVector mat))
+	    (set! (vector-ref conceptVector i) (IthAddCV (vector-ref cV i) (vector-ref conceptVector i) mat))
 	    (set! (vector-ref normalCV i) (vector-ref normalVector (vector-ref cV i)))
-	    (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat i))
+	    (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat (+ i 1)))
 	  ) 
 
 	(let((clusterpointer(SingleArray col)))
@@ -212,10 +249,10 @@
 	  (for(i 0 col)
 	    (for(j 0 clusterint)
 	      (if(= j (vector-ref clusterpointer i)) 0 (set! multi (+ multi 1)) )
-	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i j)) tempSim) (set! tempCluster j)) )	      
-	     (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i j)) tempSim) (set! tempSim (vector-ref simMat (* i j)))) )
+	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempCluster j)) )	      
+	     (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempSim (vector-ref simMat (* i (+ j 1))))) )
 	    ) 
-	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref simMat (* tempCluster i)) tempSim) )
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref simMat (* (+ tempCluster 1) i)) tempSim) )
 	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! changed (+ changed 1)) ) 
 	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref clusterpointer i) tempCluster) )
 	  )
@@ -225,30 +262,30 @@
 	(set! conceptVector ( ConceptVectorInit col))
 
 	(for(i 0 col)
-	  (if(>= (vector-ref clusterpointer i) 0) (if(< (vector-ref clusterpointer i) clusterint) (set! conceptVector (IthAddCV i conceptVector mat)) (set! (vector-ref clusterpointer i)0 )) )
+	  (if(>= (vector-ref clusterpointer i) 0) (if(< (vector-ref clusterpointer i) clusterint) (set! (vector-ref conceptVector (vector-ref clusterpointer i)) (IthAddCV i (vector-ref conceptVector (vector-ref clusterpointer i)) mat)) (set! (vector-ref clusterpointer i)0 )) )
 	)
-
+	(println* "still alive 1" )
 	(set! pointsinCluster(ClusterSize pointsinCluster clusterpointer clusterint col))
 
 	(for(i 0 clusterint)
 	 (set! (vector-ref conceptVector i) (averageVector (vector-ref conceptVector i) (vector-ref pointsinCluster i) ))  
 	)
-
+	(println* "still alive 2" )
 	(for(i 0 clusterint)
 	  (set! (vector-ref normalCV i) (norm2 (vector-ref conceptVector i)))
 	)
-
+	(println* "still alive 3" )
 	(for(i 0 clusterint)
-	  (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat i))
+	  (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat 1))
 	)
-
+	(println* "still alive 4" )
 	(let( (clusterquality (FloatArray clusterint)) (k 0))
-	
+	(println* "still alive 5" )
 	(for(i 0 col)
-	  (set! k (vector-ref pointsinCluster i))
-	  (set! clusterquality (clusterQ clusterquality (float->int k) i simMat) )
+	  (set! k (vector-ref clusterpointer i))
+	  (set! clusterquality (clusterQ clusterquality k i simMat) )
 	)
-
+	(println* "still alive 6" )
 	(let( (initialobjval (Coherence clusterint clusterquality)) (result (Coherence clusterint clusterquality)) (delta 0.000001) )
 	(let( (threshold (*(* -1.0 initialobjval) delta))   )
 
