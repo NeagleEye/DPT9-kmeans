@@ -393,35 +393,3 @@ double Kmeans::Coherence(int n_clus)
 
 	return value + n_clus*omega;
 }
-
-//Quality_change based on the different clusters.
-
-double Kmeans::Delta_X(Matrix matrix, int x, int c_ID)
-{
-	double quality_change = 0.0;
-
-	//This will only happen when we are on the same cluster.
-	if (cluster[x] == c_ID)
-		return 0;
-	//This will happen for all elements that does not belong to the cluster, this will decrease the quality of the cluster whenever it does not have a point.
-	if (cluster[x] >= 0)
-		quality_change = -1.0* clusterSize[cluster[x]] * sim_Mat[cluster[x]][x] / (clusterSize[cluster[x]] - 1);
-	//this will always happen as long as it belongs to a cluster within range.
-	if (c_ID >= 0)
-		quality_change += clusterSize[c_ID] * sim_Mat[c_ID][x] / (clusterSize[c_ID] + 1);
-
-	return quality_change;
-}
-
-// update the quality_change_matrix for a particular cluster
-void Kmeans::Update_Quality_Change_Mat(Matrix matrix, int c_ID) 
-{
-	int k, i;
-
-	k = 0;
-
-	for (i = 0; i < col; i++)
-	{
-		quality_change_mat[c_ID][i] = Delta_X(matrix, i, c_ID);
-	}
-}
