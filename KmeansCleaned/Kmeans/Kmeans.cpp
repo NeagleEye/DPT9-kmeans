@@ -142,12 +142,6 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 	/***********************
 	 * if was removed here *
 	 ***********************/
-	for (i = 0; i < n_Clusters; i++)
-		matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
-	//if it required to assign new changes it will update quility change matrix
-	if ((!no_assignment_change) && (f_v_times >0))
-		for (i = 0; i<n_Clusters; i++)
-			Update_Quality_Change_Mat(matrix, i);
 
 }
 
@@ -287,18 +281,6 @@ void Kmeans::Initialize_CV(Matrix matrix)
 	//A random constant figured out based on cluster_quality
 	initial_obj_fun_val = result = Coherence(n_Clusters);
 	fv_threshold = -1.0*initial_obj_fun_val*delta;
-
-	if (f_v_times >0)
-	{
-		//init and use quality change matrix (used to change quality Matrix)
-		quality_change_mat = new double *[n_Clusters];
-		// VT 2009-11-28
-		for (int j = 0; j < n_Clusters; j++)
-			quality_change_mat[j] = new double[col];
-
-		for (i = 0; i < n_Clusters; i++)
-			Update_Quality_Change_Mat(matrix, i);
-	}
 }
 
 //Centroids should be separated

@@ -44,6 +44,6 @@ private:
 	int /*number of clusters*/n_Clusters,col,row,
 		/*indicator of how many elements belong to each cluster*/ *clusterSize, 
 		/*pointer to which cluster the column belongs*/*cluster, 
-		/*Estimate of how long it will take maximum*/EST_START = 5, f_v_times = 0;
+		/*Estimate of how long it will take maximum*/EST_START = 5;
 };
 
