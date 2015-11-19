@@ -143,6 +143,16 @@
 	(let( (t1 (* v1 v1)) (t2 (* v2 v2)) )
 	(+ t1 t2) ))))
 
+	(define (clusterQ CQ clusterPointer i simMat)
+	  (set! (vector-ref CQ clusterPointer) (vector-ref simMat (* clusterPointer i) ) )
+	CQ)
+
+	(define (Coherence clusterInt CQ)
+	(let((value 0.0) )
+	(for(i 0 clusterInt)
+	 (set! value (+ (vector-ref CQ i) value)) )	
+	value))
+
 	(define (main)
 	  (let((mat (reader)));;now the Matrix is loaded
 	  (println* "first line: " (vector-ref mat 0) )
@@ -229,6 +239,16 @@
 	  (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat i))
 	)
 
-	0))))))))) )))))) ) ))
+	(let( (clusterquality (FloatArray clusterint)) (k 0))
+	
+	(for(i 0 col)
+	  (set! k (vector-ref pointsinCluster i))
+	  (set! clusterquality (clusterQ clusterquality (float->int k) i simMat) )
+	)
+
+	(let( (initialobjval (Coherence clusterint clusterquality)) (result (Coherence clusterint clusterquality)) (delta 0.000001) )
+	(let( (threshold (*(* -1.0 initialobjval) delta))   )
+
+	0))))))))) )))))) ) )) ) ));;the weird spacing is just to have control over how many parenthesis that have been used.
 
 )
