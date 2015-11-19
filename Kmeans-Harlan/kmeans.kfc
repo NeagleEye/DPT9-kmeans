@@ -61,6 +61,16 @@
 		    )
 	cVector))
 
+	(define (BoolInit)
+	#f)
+
+	(define (boolVector col)
+	  (let ((cVector (make-vector col (BoolInit))))
+                   (for(i 0 col) 
+		      (set! (vector-ref cVector i) (BoolInit))
+		    )
+	cVector))
+
 	(define (SingleArray col)
 	  (let ((cVector (make-vector col 1)))
                    (for(i 0 col) 
@@ -112,13 +122,13 @@
 
 	(define (EucDis result normal data col normalVector mat cluster)
 	   (for(i 0 col)
-	     (set! (vector-ref result (+ i (* cluster col))) (PreEucDistance (vector-ref result (+ i (* cluster col))) data normal normalVector mat) )	
+	     (set! (vector-ref result (+ i (* cluster col))) (PreEucDistance (vector-ref result (+ i (* cluster col))) data normal (vector-ref normalVector i) (vector-ref mat i)) )	
 	   )
 		result)
 
 	;;                 sim i inputvector conceptvector col normalvector values
 	(define (PreEucDis result i normal data col normalVector mat cluster)
-	    	(EucDis result (vector-ref normal i) (vector-ref data i) col (vector-ref normalVector i) (vector-ref mat i) cluster))
+	    	(EucDis result (vector-ref normal i) (vector-ref data i) col normalVector mat cluster))
 
 	(define (setVectorData vectordat i vectorData)
 	   (set! (vector-ref vectordat i) vectorData )
@@ -166,14 +176,24 @@
 	   (set! multi 0) (set! tempCluster 0) (set! changed 0) (set! tempSim 0)
 
 	  (for(i 0 col)
+	    (set! tempCluster (vector-ref clusterpointer i))
+	    (set! tempSim (vector-ref simMat (+ i (* (vector-ref clusterpointer i) col))))
 	    (for(j 0 clusterint)
-	      (if(= j (vector-ref clusterpointer i)) 0 (set! multi (+ multi 1)) )
-	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempCluster j)) )	      
-	     (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempSim (vector-ref simMat (* i (+ j 1))))) )
+	      (if(= j (vector-ref clusterpointer i)) 0 
+	        (for(one 0 1)
+		    (if(< (vector-ref simMat (+ i (* j col))) tempSim) 
+		      (for(two 0 1)
+			(set! tempCluster j)
+			(set! tempSim (vector-ref simMat (+ i (* j col))))			
+			))
+	        ))
 	    ) 
-	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref simMat (* (+ tempCluster 1) i)) tempSim) )
-	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! changed (+ changed 1)) ) 
-	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref clusterpointer i) tempCluster) )
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 
+	      (for(three 0 1)
+		(set! (vector-ref simMat (+ i (* tempCluster col))) tempSim)
+		(set! changed (+ changed 1))
+	        (set! (vector-ref clusterpointer i) tempCluster)
+	      ))
 	  )
 	  (println* "was anything changed ?" changed)
 	  ;; ASSIGN END
@@ -229,14 +249,24 @@
 	   (set! multi 0) (set! tempCluster 0) (set! changed 0) (set! tempSim 0)
 
 	  (for(i 0 col)
+	    (set! tempCluster (vector-ref clusterpointer i))
+	    (set! tempSim (vector-ref simMat (+ i (* (vector-ref clusterpointer i) col))))
 	    (for(j 0 clusterint)
-	      (if(= j (vector-ref clusterpointer i)) 0 (set! multi (+ multi 1)) )
-	      (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempCluster j)) )	      
-	     (if(= j (vector-ref clusterpointer i)) 0 (if(< (vector-ref simMat (* i (+ j 1))) tempSim) (set! tempSim (vector-ref simMat (* i (+ j 1))))) )
+	      (if(= j (vector-ref clusterpointer i)) 0 
+	        (for(one 0 1)
+		    (if(< (vector-ref simMat (+ i (* j col))) tempSim) 
+		      (for(two 0 1)
+			(set! tempCluster j)
+			(set! tempSim (vector-ref simMat (+ i (* j col))))			
+			))
+	        ))
 	    ) 
-	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref simMat (* (+ tempCluster 1) i)) tempSim) )
-	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! changed (+ changed 1)) ) 
-	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 (set! (vector-ref clusterpointer i) tempCluster) )
+	    (if(= (vector-ref clusterpointer i) tempCluster ) 0 
+	      (for(three 0 1)
+		(set! (vector-ref simMat (+ i (* tempCluster col))) tempSim)
+		(set! changed (+ changed 1))
+	        (set! (vector-ref clusterpointer i) tempCluster)
+	      ))
 	  )
 	  ;; ASSIGN END
 	  (if(= changed 0) 0 (for(one 0 1)
@@ -287,6 +317,7 @@
 	  (println* "first line: " (vector-ref mat 0) )
           (let((clusterint 4))
 	  (let((col(readerCol))) ;; col is set
+	  (let((marked (boolVector col)))
 	  (println* "col value is: " col)
 	  (let((normalVector ( normalvector mat col)));; normal vector calculated
 	  (println* "346 normalvector: " (vector-ref normalVector 346) )
@@ -313,6 +344,7 @@
 	  (let((simMat (PreEucDis simMat 0 normalCV conceptVector col normalVector mat 0)))
 	  (println* "simMat: " (vector-ref simMat 0) " still working ?" )
 	  (let((pointsinCluster (FloatArray clusterint)))
+	  (set! (vector-ref marked 0) #t)
 	  ;
           ;;need to check if they have been placed or not this is certainly why the algorithm bugs out right now..
           ; 
@@ -322,19 +354,24 @@
 	    (set! minind 0)
 	    (set! mind 0)
 	    (for(j 0 col)
+	      (if(= (vector-ref marked j) #f) (for(one 0 1) 
 	      (set! cossum 0)
 	      (for(k 0 i)
-	        (+ cossum (vector-ref simMat (+ j (* k col))))
+	        (set! cossum(+ cossum (vector-ref simMat (+ j (* k col)))))
 	      )
-	      (if(> cossum mind)
-	       (set! minind j))
-	      (if(> cossum mind)
-	       (set! mind cossum))
+	      (if(> cossum mind) (for(two 0 1)
+		(set! minind j)
+		(set! mind cossum)
+		;(println* "do i get in here?")
+		))
+	      ))
 	    )
 	    (set! (vector-ref cV i) minind)
 	    (set! (vector-ref conceptVector i) (IthAddCV (vector-ref cV i) (vector-ref conceptVector i) mat))
 	    (set! (vector-ref normalCV i) (vector-ref normalVector (vector-ref cV i)))
 	    (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat i))
+	    (set! (vector-ref marked (vector-ref cV i)) #t)
+	    (println* "cV: " (vector-ref cV i) " conceptVector: " (vector-ref conceptVector i) " normalCV: " (vector-ref normalCV i))
 	  ) 
 
 	(let((clusterpointer(SingleArray col)))
@@ -397,6 +434,6 @@
 
 	(Kmeans-Algorithm mat clusterint col normalVector result conceptVector simMat cV normalCV pointsinCluster clusterpointer clusterquality initialobjval threshold)
 
-	0))))))))) )))))) ) )) ) ));;the weird spacing is just to have control over how many parenthesis that have been used.
+	0)))))))))) )))))) ) )) ) ));;the weird spacing is just to have control over how many parenthesis that have been used.
 
 )
