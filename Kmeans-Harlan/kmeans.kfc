@@ -38,12 +38,6 @@
           (file-close f)
 	 col))))
 
-	(define (SetCol matvec)
-	  (match matvec ;;match to a type
-	   ((Value v1 v2)
-	  ;; (println* "first element: " v1 " second element: " v2);;debug
-	(float->int v2))))
-
         (define (NormalVectorCalc matvec)
           (match matvec ;;match to a type
 	   ((Value v1 v2)
@@ -103,7 +97,7 @@
 
 	(define (EucDistance x1 x2 v1 v2 norm normalVector)
 	  (let((result0(* x1 v1))(result1(* x2 v2)))
-	   (let((normresult(+ normalVector (int->float norm))))
+	   (let((normresult(+ normalVector norm)))
 	    (let((result2(+ result0 result1)))
 	    (let((result4(* result2 -2.0)))  
 	(+ result4 normresult))))))
@@ -134,8 +128,6 @@
 	 (match val
 	 ((Value v1 v2)
 	 (let( (t1 (/ v1 num)) (t2 (/ v2 num) ))
-	 ;(set! v1 (/ v1 (int->float num)))
-	 ;(set! v2 (/ v2 (int->float num)))
 	(Value t1 t2) ))))
 
 	(define (ClusterSize pointsinCluster clusterpointer clusterint col)
@@ -144,6 +136,12 @@
 	    (set! (vector-ref pointsinCluster (vector-ref clusterpointer i)) (+ (vector-ref pointsinCluster (vector-ref clusterpointer i)) 1) )
 	  )
 	pointsinCluster)
+
+	(define (norm2 vec)
+	(match vec
+	((Value v1 v2)
+	(let( (t1 (* v1 v1)) (t2 (* v2 v2)) )
+	(+ t1 t2) ))))
 
 	(define (main)
 	  (let((mat (reader)));;now the Matrix is loaded
@@ -157,7 +155,7 @@
 	  (let((conceptVector ( ConceptVectorInit col)));; Conceptvector init
           (println* "first conceptVector: " (vector-ref conceptVector 0) )
 	  ;;Will handle the simMat with an offset instead
-	  (let((simMat ( SingleArray (* col clusterint))));; Conceptvector init
+	  (let((simMat ( FloatArray (* col clusterint))));; Conceptvector init
           (println* "first conceptVector: " (vector-ref simMat 0) )
  	  (let((cV (SingleArray clusterint))) ;;addrandom clustervector 4 clusters
           (println* "first cV: " (vector-ref cV 0) )
@@ -166,9 +164,9 @@
 	  (let((conceptVector (IthAddCV (vector-ref cV 0) conceptVector mat)))
 	  (println* "get Data test" (getData (vector-ref mat 0) 1))
 	  ;;timer should be inserted when the Kmeans algorithm actually starts.
-	  (let((normalCV (SingleArray col))) ;; init normal_cv
+	  (let((normalCV (FloatArray col))) ;; init normal_cv
           (println* "first cV: " (vector-ref cV 0) " still working ?" )
-	  (let((normalCV (setVectorData normalCV 0 (float->int nVzero))))
+	  (let((normalCV (setVectorData normalCV 0 nVzero)))
 	  (let((simMat (PreEucDis simMat 0 normalCV conceptVector col normalVector mat 1)))
 	  (let((pointsinCluster (FloatArray clusterint)))
 	  
@@ -189,7 +187,7 @@
 	    )
 	    (set! (vector-ref cV i) minind)
 	    (set! conceptVector (IthAddCV (vector-ref cV i) conceptVector mat))
-	    (set! (vector-ref normalCV i) (float->int (vector-ref normalVector (vector-ref cV i))))
+	    (set! (vector-ref normalCV i) (vector-ref normalVector (vector-ref cV i)))
 	    (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat i))
 	  ) 
 
@@ -220,8 +218,15 @@
 	(set! pointsinCluster(ClusterSize pointsinCluster clusterpointer clusterint col))
 
 	(for(i 0 clusterint)
-	 ;(set! nVzero (vector-ref pointsinCluster i))
 	 (set! (vector-ref conceptVector i) (averageVector (vector-ref conceptVector i) (vector-ref pointsinCluster i) ))  
+	)
+
+	(for(i 0 clusterint)
+	  (set! (vector-ref normalCV i) (norm2 (vector-ref conceptVector i)))
+	)
+
+	(for(i 0 clusterint)
+	  (set! simMat (PreEucDis simMat i normalCV conceptVector col normalVector mat i))
 	)
 
 	0))))))))) )))))) ) ))
