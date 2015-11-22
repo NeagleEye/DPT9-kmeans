@@ -145,62 +145,13 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 }
 
-int Kmeans::Assign_Cluster(Matrix matrix)
-{
-
-	int i, j, multi = 0, changed = 0, temp_Cluster_ID;
-	double temp_sim;
-
-	//Init the distance based on old distances
-	for (i = 0; i < n_Clusters; i++)
-		for (j = 0; j < col; j++)
-			if (i != cluster[j])
-				sim_Mat[i][j] += difference[i] - 2 * sqrt(difference[i] * sim_Mat[i][j]);
-
-	for (i = 0; i < col; i++)
-	{
-		temp_sim = sim_Mat[cluster[i]][i];
-		temp_Cluster_ID = cluster[i];
-
-		for (j = 0; j < n_Clusters; j++)
-			if (j != cluster[i])
-			{
-				//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
-				if (sim_Mat[j][i] < temp_sim)
-				{
-					multi++;
-					//recalculate the new vector based on new formula
-					sim_Mat[j][i] = matrix.Euc_Dis(concept_Vectors[j], i, normal_ConceptVectors[j]);
-					//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
-					if (sim_Mat[j][i] < temp_sim)
-					{
-						temp_sim = sim_Mat[j][i];
-						temp_Cluster_ID = j;
-					}
-				}
-			}
-		//Assign new cluster if closer than previous cluster
-		if (temp_Cluster_ID != cluster[i])
-		{
-			cluster[i] = temp_Cluster_ID;
-			sim_Mat[cluster[i]][i] = temp_sim;
-			changed++;
-		}
-	}
-	/******************************************************
-	 * Removed the Else of stabilized as we never uses it *
-	 *                                                    *
-	 ******************************************************/
-	return changed;
-}
-
 /***************************
  * New init assign cluster *
  ***************************/
 
 int Kmeans::InitAssignCluster(Matrix matrix)
 {
-	int i, j, multi = 0, changed = 0, temp_Cluster_ID;
+	int i, j, changed = 0, temp_Cluster_ID;
 	double temp_sim;
 
 	for (i = 0; i < col; i++)
@@ -212,7 +163,6 @@ int Kmeans::InitAssignCluster(Matrix matrix)
 			//if point does not belong to cluster do
 			if (j != cluster[i])
 			{
-				multi++;
 				//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
 				if (sim_Mat[j][i] < temp_sim)
 				{
