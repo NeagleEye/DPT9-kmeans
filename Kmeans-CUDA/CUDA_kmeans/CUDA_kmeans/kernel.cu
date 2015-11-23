@@ -49,7 +49,7 @@ void GPU_average_vec(double *vec, int n, int num)
 
 	GPU_Func_average_vec << <numberOfBlocks, MaxThreadsPerBlock >> >(dev_vec, n, num);
 
-	cudaMemcpy(vec, dev_vec, n * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(vec, dev_vec, n * sizeof(double), cudaMemcpyDeviceToHost);
 
 	cudaFree(dev_vec);
 }
@@ -80,6 +80,16 @@ __global__ void GPU_Func_Euc_Dis(double *x, double norm_x, double **value, int n
 		dev_result[i] = result;
 	}
 }
+
+__global__ void GPU_Func_Update_Cluster(int n, int *dev_cluster, double * dev_cluster_quality, double **dev_sim_Mat)
+{
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < n)
+	{
+		dev_cluster_quality[dev_cluster[i]] += dev_sim_Mat[dev_cluster[i]][i];
+	}
+}
+
 #pragma endregion
 
 
@@ -770,7 +780,7 @@ void Matrix::GPU_ComputeNormalVector()
 
 	GPU_Func_ComputeNormalVector <<<numberOfBlocks, MaxThreadsPerBlock >>>(dev_normalVector, n_row_elements, dev_value, n_col);
 
-	cudaMemcpy(normalVector, dev_normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(normalVector, dev_normalVector, n_col * sizeof(double), cudaMemcpyDeviceToHost);
 
 	cudaFree(dev_normalVector);
 	cudaFree(dev_value);
@@ -815,20 +825,29 @@ void Matrix::GPU_Euc_Dis(double *x, double norm_x, double *result)
 {
 	double *dev_X;
 	double *dev_Result;
+	double *dev_normalVector;
 	double **dev_value;
 
+	cudaMalloc((void**)&dev_X, n_col * sizeof(double));
+	cudaMalloc((void**)&dev_Result, n_col * sizeof(double));
+	cudaMalloc((void**)&dev_normalVector, n_col * sizeof(double));
+	//size_t pitches[n_row_elements];
+	//cudaMallocPitch((void**)dev_value, , n_col * sizeof(double), n_row_elements);
+	//cudaMalloc((void**)&dev_value, n_row_elements * n_col * sizeof(double));
+
 	cudaMemcpy(dev_X, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice); // NIELS: IKKE HELT SIKKER PÅ STØRRELSERNE HER
-	cudaMemcpy(dev_Result, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice); // NIELS: IKKE HELT SIKKER PÅ STØRRELSERNE HER
-	cudaMemcpy(dev_value, value, n_row_elements * n_col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_normalVector, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice); // NIELS: IKKE HELT SIKKER PÅ STØRRELSERNE HER
+	//cudaMemcpy(dev_value, value, n_row_elements * n_col * sizeof(double), cudaMemcpyHostToDevice);
 
 	int numberOfBlocks = ceil(n_col / MaxThreadsPerBlock); // ceil is there just to be save
 
-	GPU_Func_Euc_Dis << <numberOfBlocks, MaxThreadsPerBlock >> >(x, norm_x, dev_value, n_row_elements, normalVector, dev_Result, n_col);
+	GPU_Func_Euc_Dis << <numberOfBlocks, MaxThreadsPerBlock >> >(dev_X, norm_x, dev_value, n_row_elements, normalVector, dev_Result, n_col);
 
-	cudaMemcpy(result, dev_Result, n_col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(result, dev_Result, n_col * sizeof(double), cudaMemcpyDeviceToHost);
 
 	cudaFree(dev_X);
 	cudaFree(dev_Result);
+	cudaFree(dev_normalVector);
 	cudaFree(dev_value);
 }
 
@@ -884,6 +903,7 @@ Matrix GetVector(int &x, int &y)
 #pragma endregion
 
 #pragma region Kmeans
+
 class Kmeans
 {
 public:
@@ -894,7 +914,8 @@ public:
 	//Init the concept vectors
 	void Initialize_CV(Matrix matrix);
 	//assign new cluster based on distances.
-	int Assign_Cluster(Matrix matrix, bool simi_est);
+	int Assign_Cluster(Matrix matrix);
+	int InitAssignCluster(Matrix matrix);
 	//Update the centroids of the clusters
 	void Update_Centroids(Matrix matrix);
 	//seperate the centroids of the concept vectors
@@ -911,6 +932,7 @@ public:
 	void Update_Quality_Change_Mat(Matrix matrix, int c_ID);
 	//void SetDebugger(bool debugoption){ debug = debugoption; };
 private:
+	void GPU_Update_Cluster();
 	RandomGenerator_MT19937 rand_gen;
 	//sim_Mat normally contains the distance, Concept_vectors contain a point with addition of another concept vector.
 	//cluster_Quality determines how likely the different points har close to the correct closter.
@@ -923,8 +945,7 @@ private:
 	int /*number of clusters*/n_Clusters, col, row,
 		/*indicator of how many elements belong to each cluster*/ *clusterSize,
 		/*pointer to which cluster the column belongs*/*cluster,
-		/*Estimate of how long it will take maximum*/EST_START = 5, f_v_times = 0;
-	bool stabilized /*debug=false*/;
+		/*Estimate of how long it will take maximum*/EST_START = 5;
 };
 
 Kmeans::Kmeans(int n_cluster, int clusterinit[], int columns, int rows)
@@ -951,13 +972,8 @@ Kmeans::Kmeans(int n_cluster, int clusterinit[], int columns, int rows)
 
 	difference = new double[n_Clusters];
 
-
 	clusterSize = new int[n_Clusters];
 
-
-	/*if (!random_seeding)
-	rand_gen.Set((unsigned)seed);
-	else*/
 	rand_gen.Set((unsigned)time(NULL));
 }
 
@@ -989,6 +1005,9 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 	int n_Iters, i, j;
 	bool no_assignment_change;
 
+	/***********************
+	* if was removed here *
+	***********************/
 	n_Iters = 0;
 	no_assignment_change = true;
 
@@ -998,13 +1017,11 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 	{
 		pre_Result = result;
 		n_Iters++;
-		//We estimate its a stable cluster if it can be finished within 5 steps
-		if (n_Iters >EST_START)
-			stabilized = true;
 
 		//If there is no new assignment we have finished clustering.
-		if (Assign_Cluster(matrix, stabilized) == 0){ 
-			int lala = 0; 
+		if (InitAssignCluster(matrix) == 0)
+		{
+			int dum = 0;
 		}
 		else
 		{
@@ -1025,7 +1042,7 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 			//Average vector for all clusters (concept_vectors now contain the average vector of each cluster)
 			for (i = 0; i < n_Clusters; i++)
-				average_vec(concept_Vectors[i], row, clusterSize[i]);
+				GPU_average_vec(concept_Vectors[i], row, clusterSize[i]);
 			//normal Vector gets the squared average vector
 			for (i = 0; i < n_Clusters; i++)
 				normal_ConceptVectors[i] = norm_2(concept_Vectors[i], row);
@@ -1042,14 +1059,14 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 				//returning distance between the squared average vector and the average vector to sim_mat
 				if (n_Iters > EST_START)
-				for (i = 0; i<col; i++) // NIELS: paralleliseret?
-					sim_Mat[cluster[i]][i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]); 
+				for (i = 0; i<col; i++)
+					sim_Mat[cluster[i]][i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]);
 				else
 				for (i = 0; i < n_Clusters; i++)
 					matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 			}
 			else
-			for (i = 0; i < n_Clusters; i++)//returning distance between the squared average vector and the average vector to sim_mat // NIELS: paralleliseret?
+			for (i = 0; i < n_Clusters; i++)//returning distance between the squared average vector and the average vector to sim_mat
 				matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
 
 			//initialize cluster_quality
@@ -1061,6 +1078,8 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 			{
 				cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
 			}
+			//GPU_Update_Cluster();
+
 			//Coherence is based on the total cluster quality
 			result = Coherence(n_Clusters);
 
@@ -1069,93 +1088,72 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 	} while ((pre_Result - result) > epsilon*initial_obj_fun_val);
 	std::cout << std::endl;
 
-	//if the kmeans has run and it was stabil we retrieve the euclidean distance of concept_vectors and the normal_ConceptVectors
-	if (stabilized)
-	for (i = 0; i < n_Clusters; i++)
-		matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
-	//if it required to assign new changes it will update quility change matrix
-	if ((!no_assignment_change) && (f_v_times >0))
-	for (i = 0; i<n_Clusters; i++)
-		Update_Quality_Change_Mat(matrix, i);
+	// we retrieve the euclidean distance of concept_vectors and the normal_ConceptVectors
+	/***********************
+	* if was removed here *
+	***********************/
 
 }
 
-int Kmeans::Assign_Cluster(Matrix matrix, bool stabilized)
-{
+/***************************
+* New init assign cluster *
+***************************/
 
-	int i, j, multi = 0, changed = 0, temp_Cluster_ID;
+int Kmeans::InitAssignCluster(Matrix matrix)
+{
+	int i, j, changed = 0, temp_Cluster_ID;
 	double temp_sim;
 
-	//if stabil (run less than 
-	if (stabilized)
+	for (i = 0; i < col; i++)
 	{
-		//Init the distance based on old distances
-		for (i = 0; i < n_Clusters; i++)
-		for (j = 0; j < col; j++)
-		if (i != cluster[j])
-			sim_Mat[i][j] += difference[i] - 2 * sqrt(difference[i] * sim_Mat[i][j]);
+		temp_sim = sim_Mat[cluster[i]][i];
+		temp_Cluster_ID = cluster[i];
 
-		for (i = 0; i < col; i++)
+		for (j = 0; j < n_Clusters; j++)
+			//if point does not belong to cluster do
+		if (j != cluster[i])
 		{
-			temp_sim = sim_Mat[cluster[i]][i];
-			temp_Cluster_ID = cluster[i];
-
-			for (j = 0; j < n_Clusters; j++)
-			if (j != cluster[i])
+			//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
+			if (sim_Mat[j][i] < temp_sim)
 			{
-				//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
-				if (sim_Mat[j][i] < temp_sim)
-				{
-					multi++;
-					//recalculate the new vector based on new formula
-					sim_Mat[j][i] = matrix.Euc_Dis(concept_Vectors[j], i, normal_ConceptVectors[j]);
-					//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
-					if (sim_Mat[j][i] < temp_sim)
-					{
-						temp_sim = sim_Mat[j][i];
-						temp_Cluster_ID = j;
-					}
-				}
-			}
-			//Assign new cluster if closer than previous cluster
-			if (temp_Cluster_ID != cluster[i])
-			{
-				cluster[i] = temp_Cluster_ID;
-				sim_Mat[cluster[i]][i] = temp_sim;
-				changed++;
+				temp_sim = sim_Mat[j][i];
+				temp_Cluster_ID = j;
 			}
 		}
-	}
-	//if unstable 
-	else
-	{
-		for (i = 0; i < col; i++)
+		//Assign new cluster if closer than previous cluster
+		if (temp_Cluster_ID != cluster[i])
 		{
-			temp_sim = sim_Mat[cluster[i]][i];
-			temp_Cluster_ID = cluster[i];
-
-			for (j = 0; j < n_Clusters; j++)
-				//if point does not belong to cluster do
-			if (j != cluster[i])
-			{
-				multi++;
-				//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
-				if (sim_Mat[j][i] < temp_sim)
-				{
-					temp_sim = sim_Mat[j][i];
-					temp_Cluster_ID = j;
-				}
-			}
-			//Assign new cluster if closer than previous cluster
-			if (temp_Cluster_ID != cluster[i])
-			{
-				cluster[i] = temp_Cluster_ID;
-				sim_Mat[cluster[i]][i] = temp_sim;
-				changed++;
-			}
+			cluster[i] = temp_Cluster_ID;
+			sim_Mat[cluster[i]][i] = temp_sim;
+			changed++;
 		}
 	}
 	return changed;
+}
+
+//GPU version for update the cluster quality based on the collected simulation matrix
+void Kmeans::GPU_Update_Cluster()
+{
+	int *dev_cluster;
+	double * dev_cluster_quality;
+	double **dev_sim_Mat;
+
+	cudaMalloc((void**)&dev_cluster, col * sizeof(double));
+	cudaMalloc((void**)&dev_cluster_quality, col * sizeof(double));
+
+	cudaMemcpy(dev_cluster, cluster, col * sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_cluster_quality, cluster_quality, col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_sim_Mat, sim_Mat, n_Clusters * col * sizeof(double), cudaMemcpyHostToDevice);
+
+	int numberOfBlocks = ceil(col / MaxThreadsPerBlock); // ceil is there just to be save 
+
+	GPU_Func_Update_Cluster << <numberOfBlocks, MaxThreadsPerBlock >> >(col, dev_cluster, dev_cluster_quality, dev_sim_Mat);
+
+	cudaMemcpy(cluster_quality, dev_cluster_quality, n_Clusters * col * sizeof(double), cudaMemcpyDeviceToHost);
+
+	cudaFree(dev_cluster);
+	cudaFree(dev_cluster_quality);
+	cudaFree(dev_sim_Mat);
 }
 
 //Initialize the Concept Vectors
@@ -1208,18 +1206,6 @@ void Kmeans::Initialize_CV(Matrix matrix)
 	//A random constant figured out based on cluster_quality
 	initial_obj_fun_val = result = Coherence(n_Clusters);
 	fv_threshold = -1.0*initial_obj_fun_val*delta;
-
-	if (f_v_times >0)
-	{
-		//init and use quality change matrix (used to change quality Matrix)
-		quality_change_mat = new double *[n_Clusters];
-		// VT 2009-11-28
-		for (int j = 0; j < n_Clusters; j++)
-			quality_change_mat[j] = new double[col];
-
-		for (i = 0; i < n_Clusters; i++)
-			Update_Quality_Change_Mat(matrix, i);
-	}
 }
 
 //Centroids should be separated
@@ -1250,6 +1236,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 	normal_ConceptVectors[0] = matrix.GetNorm(cv[0]);
 	//Euclidean Distance between the vectors
 	matrix.Euc_Dis(concept_Vectors[0], normal_ConceptVectors[0], sim_Mat[0]);
+	//matrix.GPU_Euc_Dis(concept_Vectors[0], normal_ConceptVectors[0], sim_Mat[0]);
 
 	//Create random concept vectors (roughly in the same area)
 	for (i = 1; i<n_Clusters; i++)
@@ -1281,7 +1268,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 	//assign the points to clusters
 	for (i = 0; i<col; i++)
 		cluster[i] = 0;
-	Assign_Cluster(matrix, false);
+	InitAssignCluster(matrix);
 
 	delete[] cv;
 	delete[] mark;
@@ -1331,38 +1318,6 @@ double Kmeans::Coherence(int n_clus)
 		value += cluster_quality[i];
 
 	return value + n_clus*omega;
-}
-
-//Quality_change based on the different clusters.
-
-double Kmeans::Delta_X(Matrix matrix, int x, int c_ID)
-{
-	double quality_change = 0.0;
-
-	//This will only happen when we are on the same cluster.
-	if (cluster[x] == c_ID)
-		return 0;
-	//This will happen for all elements that does not belong to the cluster, this will decrease the quality of the cluster whenever it does not have a point.
-	if (cluster[x] >= 0)
-		quality_change = -1.0* clusterSize[cluster[x]] * sim_Mat[cluster[x]][x] / (clusterSize[cluster[x]] - 1);
-	//this will always happen as long as it belongs to a cluster within range.
-	if (c_ID >= 0)
-		quality_change += clusterSize[c_ID] * sim_Mat[c_ID][x] / (clusterSize[c_ID] + 1);
-
-	return quality_change;
-}
-
-// update the quality_change_matrix for a particular cluster
-void Kmeans::Update_Quality_Change_Mat(Matrix matrix, int c_ID)
-{
-	int k, i;
-
-	k = 0;
-
-	for (i = 0; i < col; i++)
-	{
-		quality_change_mat[c_ID][i] = Delta_X(matrix, i, c_ID);
-	}
 }
 
 #pragma endregion
@@ -1440,6 +1395,20 @@ __global__ void addKernel(int c[], const int a[], const int b[], int size)
 {
 	int i = threadIdx.x;
 	c[i] = a[i] + b[i] + size;
+}
+
+__global__ void CopyData(float* d_array, float* destinationArray, size_t pitch, int columnCount, int rowCount)
+{
+	for (int row = 0; row < rowCount; row++)
+	{
+		// update the pointer to point to the beginning of the next row  
+		float* rowData = (float*)(((char*)d_array) + (row * pitch));
+		for (int column = 0; column < columnCount; column++)
+		{
+			rowData[column] = 123.0; // make every value in the array 123.0  
+			destinationArray[(row*columnCount) + column] = rowData[column];
+		}
+	}
 }
 
 class testClass
@@ -1527,6 +1496,35 @@ void testcode()
 	}
 }
 
+void testcode2()
+{
+	int columnCount = 15;
+	int rowCount = 10;
+	float* d_array; // the device array which memory will be allocated to  
+	float* d_destinationArray; // the device array  
+	// allocate memory on the host  
+	float* h_array = new float[columnCount*rowCount];
+	// the pitch value assigned by cudaMallocPitch  
+	// (which ensures correct data structure alignment)  
+	size_t pitch;
+	//allocated the device memory for source array  
+	cudaMallocPitch(&d_array, &pitch, columnCount * sizeof(float), rowCount);
+	//allocate the device memory for destination array  
+	cudaMalloc(&d_destinationArray, columnCount*rowCount*sizeof(float));
+	//call the kernel which copies values from d_array to d_destinationArray  
+	CopyData << <100, 512 >> >(d_array, d_destinationArray, pitch, columnCount, rowCount);
+	//copy the data back to the host memory  
+	cudaMemcpy(h_array, d_destinationArray, columnCount*rowCount*sizeof(float), cudaMemcpyDeviceToHost);
+	//print out the values (all the values are 123.0)  
+	for (int i = 0; i < rowCount; i++)
+	{
+		for (int j = 0; j < columnCount; j++)
+		{
+			std::cout << "h_array(" << i << "," << j << ")  [" << (i*columnCount) + j << "]=" << h_array[(i*columnCount) + j] << std::endl;
+		}
+	}
+}
+
 void kmeanscode()
 {
 	
@@ -1550,8 +1548,11 @@ void kmeanscode()
 
 int main()
 {
-	testcode();
-	kmeanscode();
+	//testcode();
+	testcode2();
+	//kmeanscode();
+
+	int fail = 0;
     return 0;
 }
 #pragma endregion
