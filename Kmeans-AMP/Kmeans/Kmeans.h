@@ -45,5 +45,6 @@ private:
 		/*indicator of how many elements belong to each cluster*/ *clusterSize, 
 		/*pointer to which cluster the column belongs*/*cluster, 
 		/*Estimate of how long it will take maximum*/EST_START = 5;
+	void GPU_update_cluster_quality();
 };
 

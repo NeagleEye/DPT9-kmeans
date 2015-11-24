@@ -2,7 +2,8 @@
 #include "MathonVectors.h"
 #include <time.h>
 #include <iostream>
-
+#include <amp.h>
+#include <Vector>
 Kmeans::Kmeans(int n_cluster, int clusterinit[], int columns, int rows)
 {
 	//Initialize values
@@ -111,8 +112,12 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 				//returning distance between the squared average vector and the average vector to sim_mat
 				if (n_Iters > EST_START)
-					for (i = 0; i<col; i++)
+				{
+					for (i = 0; i < col; i++)
+					{
 						sim_Mat[cluster[i]][i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]);
+					}
+				}
 				else
 					for (i = 0; i < n_Clusters; i++)
 						matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
@@ -130,6 +135,7 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 			{
 				cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
 			}
+
 			//Coherence is based on the total cluster quality
 			result = Coherence(n_Clusters);
 
@@ -342,4 +348,38 @@ double Kmeans::Coherence(int n_clus)
 		value += cluster_quality[i];
 
 	return value + n_clus*omega;
+}
+
+void Kmeans::GPU_update_cluster_quality()
+{
+	/*for (i = 0; i < col; i++)
+	{
+		cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
+	}*/
+	
+	std::vector<double> Flat_sim_Mat; //MEGET DUM KODE
+	for (int i = 0; i < n_Clusters; i++)
+	{
+		for (int x = 0; x < col; x++)
+		{
+			Flat_sim_Mat.push_back(sim_Mat[i][x]);
+		}
+	}
+	concurrency::array_view<int, 1> GPU_cluster_quality(n_Clusters, cluster_quality);
+	concurrency::array_view<int, 1> GPU_cluster(col, cluster);
+	concurrency::array_view<int, 1> GPU_sim_Mat(col*row, sim_Mat);
+
+	concurrency::parallel_for_each(GPU_cluster.extent, [=](concurrency::index<1> idx) restrict(amp)
+	{
+		GPU_cluster_quality[GPU_cluster[idx]] += GPU_sim_Mat[GPU_cluster[idx] * n_Clusters + idx]
+	});
+	int counter = 0;
+	for (int i = 0; i < n_Clusters; i++)
+	{
+		for (int x = 0; x < col; x++)
+		{
+			sim_Mat[i][x] = GPU_sim_Mat[counter];
+			counter++;
+		}
+	}
 }
