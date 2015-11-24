@@ -371,7 +371,7 @@ void Kmeans::GPU_update_cluster_quality()
 
 	concurrency::parallel_for_each(GPU_cluster.extent, [=](concurrency::index<1> idx) restrict(amp)
 	{
-		GPU_cluster_quality[GPU_cluster[idx]] += GPU_sim_Mat[GPU_cluster[idx] * n_Clusters + idx]
+		GPU_cluster_quality[GPU_cluster[idx]] += GPU_sim_Mat[GPU_cluster[idx] * n_Clusters + idx];
 	});
 	int counter = 0;
 	for (int i = 0; i < n_Clusters; i++)
