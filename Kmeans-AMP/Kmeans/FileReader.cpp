@@ -36,8 +36,17 @@ Matrix GetVector(int &x, int &y)
 			for (int j = 0; j < result.n_row; j++)
 			{
 				myfile >> result.val[j][i];
-				if (j == 0){ if (result.val[j][i] > x)x = result.val[j][i]; }
-				else if (j == 1){ if (result.val[j][i] > y)y = result.val[j][i]; }
+				if (j == 0)
+				{ 
+					if (result.val[j][i] > x)x = result.val[j][i]; 
+				}
+				else if (j == 1)
+				{ 
+					if (result.val[j][i] > y)
+					{ 
+						y = result.val[j][i]; 
+					}
+				}
 			}
 		}
 		myfile.close();

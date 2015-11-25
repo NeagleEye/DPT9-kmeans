@@ -39,5 +39,5 @@ private:
 	int n_row_elements, n_col;
 	//**value = value[row][col] (rowth element, column)
 	//normalVector = normalvector over row of elements (vector)
-	double **value, *normalVector;
+	double *value, *normalVector;
 };
