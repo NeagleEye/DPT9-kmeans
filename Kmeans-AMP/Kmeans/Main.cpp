@@ -84,7 +84,7 @@ void AMP_testCode3()
 	concurrency::array_view<int, 1> av0(data0.size(), data0);
 	concurrency::parallel_for_each(av0.extent, [=](concurrency::index<1> idx) restrict(amp)
 	{
-		av0[idx] = av0[idx] + n;
+		av0[idx] += n;
 	});
 	test = av0.data();
 
@@ -124,20 +124,6 @@ void AMP_testCode4()
 			largeOne.push_back(BigOne[i][x]);
 		}
 	}
-
-	concurrency::array_view<int, 2> av0(length, depths, largeOne);
-	concurrency::parallel_for_each(
-		av0.extent,
-		[=](concurrency::index<1> idx) restrict(amp) {
-		for (int inner = 0; inner < depths; inner++) {
-			
-		}
-	}
-	);
-	for (int i = 0; i < largeOne.size(); i++)
-	{
-		cout << i << ": " << largeOne[i];
-	}
 }
 void exampleCode()
 {
@@ -165,7 +151,7 @@ void exampleCode()
 
 int main()
 {
-	exampleCode();
+	AMP_testCode3();
 	//kmeansKode();
 	return 0;
 }

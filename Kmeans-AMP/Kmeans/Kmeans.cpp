@@ -131,10 +131,13 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 				cluster_quality[i] = 0.0;
 
 			//update the cluster quality based on the collected simulation matrix
-			for (i = 0; i < col; i++)
-			{
-				cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
-			}
+			// CPU version
+			//for (i = 0; i < col; i++)
+			//{
+			//	cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
+			//}
+			// GPU version
+			GPU_update_cluster_quality();
 
 			//Coherence is based on the total cluster quality
 			result = Coherence(n_Clusters);
@@ -357,7 +360,9 @@ void Kmeans::GPU_update_cluster_quality()
 		cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
 	}*/
 	
-	std::vector<double> Flat_sim_Mat; //MEGET DUM KODE
+	// there was no because could obvious way to work on a 2d array without it before being a 1d array we had to make a flat version
+	// of sim_Mat to use en the AMP parallel_for_each one could make the sim_Mat flat in the entire code
+	std::vector<double> Flat_sim_Mat; 
 	for (int i = 0; i < n_Clusters; i++)
 	{
 		for (int x = 0; x < col; x++)
@@ -365,13 +370,14 @@ void Kmeans::GPU_update_cluster_quality()
 			Flat_sim_Mat.push_back(sim_Mat[i][x]);
 		}
 	}
-	concurrency::array_view<int, 1> GPU_cluster_quality(n_Clusters, cluster_quality);
-	concurrency::array_view<int, 1> GPU_cluster(col, cluster);
-	concurrency::array_view<int, 1> GPU_sim_Mat(col*row, sim_Mat);
 
+	concurrency::array_view<double, 1> GPU_cluster_quality(n_Clusters, cluster_quality);
+	concurrency::array_view<int, 1> GPU_cluster(col, cluster);
+	concurrency::array_view<double, 1> GPU_sim_Mat((col*row), Flat_sim_Mat);
+	int temp_n_Clusters = n_Clusters; // for some reason can parallel_for_each not the reach n_Clusters and therefore a temp variable here have been made
 	concurrency::parallel_for_each(GPU_cluster.extent, [=](concurrency::index<1> idx) restrict(amp)
 	{
-		GPU_cluster_quality[GPU_cluster[idx]] += GPU_sim_Mat[GPU_cluster[idx] * n_Clusters + idx];
+		GPU_cluster_quality[GPU_cluster[idx]] += GPU_sim_Mat[GPU_cluster[idx] * temp_n_Clusters + idx];
 	});
 	int counter = 0;
 	for (int i = 0; i < n_Clusters; i++)
