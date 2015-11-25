@@ -41,6 +41,7 @@ module Computations =
                 clustersize.[clusterpointer.[i]] <- clustersize.[clusterpointer.[i]]+1
 
         member this.Coherence (clusterQuality:array<double>) =
+            resultval <- 0.0
             for i in 0 .. nCluster-1 do
                 resultval <- resultval+clusterQuality.[i]
             resultval

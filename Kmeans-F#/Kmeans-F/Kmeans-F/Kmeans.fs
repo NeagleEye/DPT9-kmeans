@@ -101,7 +101,6 @@ module kMain =
         member this.DoKmeans(conceptVector:Matrix<double>, clusterpointer:array<int>, clustersize:array<int>, nCluster:int, col:int, row:int, normalCV:array<double>, simMat:Matrix<double>, clusterQuality:array<double>, funval:double, result:double, preResult:double, iter:int,oldCV:Matrix<double>,assign:InitAssignCluster,difference:array<double>) = 
             newpreResult <- result
             newiter <- iter+1
-            nresult <- 0.0
             if assign.AssignCluster(simMat,clusterpointer) = 0 then
                 newiter<-newiter
             else
