@@ -35,7 +35,7 @@ private:
 	RandomGenerator_MT19937 rand_gen;
 	//sim_Mat normally contains the distance, Concept_vectors contain a point with addition of another concept vector.
 	//cluster_Quality determines how likely the different points har close to the correct closter.
-	double *sim_Mat, *normal_ConceptVectors, **concept_Vectors, **old_ConceptVectors, *cluster_quality, *cv_Norm;
+	double **sim_Mat, *normal_ConceptVectors, **concept_Vectors, **old_ConceptVectors, *cluster_quality, *cv_Norm;
 	//Difference is the difference between two concept vectors, epsilon,delta and omega are user specific parameters adjusting the critic analysis of the program
 	double *difference, epsilon = 0.001, delta = 0.000001, omega = 0.0, pre_Result, result, initial_obj_fun_val, **quality_change_mat;
 	double fv_threshold;
