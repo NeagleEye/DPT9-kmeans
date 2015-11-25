@@ -160,18 +160,14 @@ module KmeansAlg =
     let oldCV = Kmeans.InitParameters.oldCV
     let mutable assign = WellSeperatedCentroids.assign
     let difference = Kmeans.InitParameters.difference
-    printfn "%A" clustersize
-    printfn "%A %A %A" result iter preResult
     kMain.KmeansInner().DoKmeans(conceptVector, clusterpointer,clustersize,nCluster,col,row,normalCV,simMat,clusterQuality,funval,result,preResult,iter,oldCV,assign,difference)
     result <- kMain.nresult
     iter <- kMain.newiter
     preResult <- kMain.newpreResult
-    printfn "%A %A %A" result iter preResult
-    printfn "%A" clustersize
-    printfn "%A %A" (preResult - result) (0.001*funval)
-    while (preResult - result) > (0.001*funval) do
+
+    while (preResult - result) > 0.001*funval do
         kMain.KmeansInner().DoKmeans(conceptVector, clusterpointer,clustersize,nCluster,col,row,normalCV,simMat,clusterQuality,funval,result,preResult,iter,oldCV,assign,difference)
         result <- kMain.nresult
         iter <- kMain.newiter
         preResult <- kMain.newpreResult
-        printfn "Is this runned ?"
+    printfn "Iterations: %A" iter
