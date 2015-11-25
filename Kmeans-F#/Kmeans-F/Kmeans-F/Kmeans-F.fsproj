@@ -48,9 +48,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="Computations.fs" />
     <Compile Include="Matrix.fs" />
     <Compile Include="Init.fs" />
+    <Compile Include="Computations.fs" />
+    <Compile Include="Kmeans.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <PropertyGroup>

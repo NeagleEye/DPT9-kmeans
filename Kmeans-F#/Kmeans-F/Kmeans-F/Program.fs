@@ -3,9 +3,10 @@
 //namespace Kmeans
 [<EntryPoint>]
 let main argv = 
-    let matrix = Kmeans.MatrixCreator.matrix
-    let col = Kmeans.MatrixCreator.col
-    let row = Kmeans.MatrixCreator.row
-    printfn "%A" matrix.[col-1,row-1]
+    let simMat2 = Kmeans.InitKmeans.conceptVector
 
+    //now to run the algorithm
+    let simMat = Kmeans.KmeansAlg.col
+    let rand = Kmeans.InitParameters.number
+    printfn "%A" rand
     0 // return an integer exit code

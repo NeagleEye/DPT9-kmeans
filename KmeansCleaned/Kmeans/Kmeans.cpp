@@ -64,7 +64,6 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 	* if was removed here *
 	***********************/
 	n_Iters = 0;
-	no_assignment_change = true;
 
 	//DO while of the algorithm to assign to new cluster is closer, update the centroid.
 	//Before we get here we will have used Well_Seperated_Centroids which will be the initial partition of data
@@ -77,9 +76,6 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 		if (InitAssignCluster(matrix) == 0){}
 		else
 		{
-			/*There was an assignment thus we have to compute new centroids and update the size of each cluster,
-			*as values will be assigned to other clusters*/
-			no_assignment_change = false;
 			
 			Compute_Cluster_Size();
 
@@ -134,6 +130,7 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 			result = Coherence(n_Clusters);
 
 			std::cout << "E";
+			std::cout << (pre_Result - result) - (epsilon*initial_obj_fun_val) << std::endl;
 		}//epsilon is a user defined function default set to 0.0001, initial_obj_fun_val is defined by the initial partioning.
 	} while ((pre_Result - result) > epsilon*initial_obj_fun_val);
 	std::cout << std::endl;
@@ -204,15 +201,12 @@ void Kmeans::Initialize_CV(Matrix matrix)
 	}
 	//compute how many points belongs to the different cluster
 	Compute_Cluster_Size();
-
 	//average vector for each cluster
 	for (i = 0; i < n_Clusters; i++)
 		average_vec(concept_Vectors[i], row, clusterSize[i]);
-
 	//Compute the normal vector for n_clusters number of vectors = ^2 
 	for (i = 0; i < n_Clusters; i++)
 		normal_ConceptVectors[i] = norm_2(concept_Vectors[i], row);
-
 	//calculate the distance from the concept vectors to the normal vectors
 	for (i = 0; i < n_Clusters; i++)
 		matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
@@ -227,7 +221,7 @@ void Kmeans::Initialize_CV(Matrix matrix)
 	}
 	//for (i = 0; i < n_Clusters; i++)
 	//diff[i] = 0.0;
-
+	std::cout << cluster_quality[0] << " " << cluster_quality[1] << " " << cluster_quality[2] << " " << cluster_quality[4] << " " << std::endl;
 	//A random constant figured out based on cluster_quality
 	initial_obj_fun_val = result = Coherence(n_Clusters);
 	fv_threshold = -1.0*initial_obj_fun_val*delta;
@@ -252,7 +246,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 	do{
 		cv[0] = rand_gen.GetUniformInt(col);
 	} while (mark[cv[0]]);
-
+	cv[0] = 2480;
 	//add current concept_vector to the original vector
 	matrix.Ith_Add_CV(cv[0], concept_Vectors[0]);
 	mark[cv[0]] = true;
@@ -261,7 +255,6 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 	normal_ConceptVectors[0] = matrix.GetNorm(cv[0]);
 	//Euclidean Distance between the vectors
 	matrix.Euc_Dis(concept_Vectors[0], normal_ConceptVectors[0], sim_Mat[0]);
-
 	//Create random concept vectors (roughly in the same area)
 	for (i = 1; i<n_Clusters; i++)
 	{
