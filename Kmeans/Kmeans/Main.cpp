@@ -20,7 +20,6 @@ int main()
 	matrix.ComputeNormalVector();
 	k.Initialize_CV(matrix);
 	matrix = k.Generel_K_Means(matrix);
-	cout << matrix.getClusterID(0) << endl;
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
