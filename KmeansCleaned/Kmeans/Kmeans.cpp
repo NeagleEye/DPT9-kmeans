@@ -130,7 +130,7 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 			result = Coherence(n_Clusters);
 
 			std::cout << "E";
-			std::cout << (pre_Result - result) - (epsilon*initial_obj_fun_val) << std::endl;
+			//std::cout << (pre_Result - result) - (epsilon*initial_obj_fun_val) << std::endl;
 		}//epsilon is a user defined function default set to 0.0001, initial_obj_fun_val is defined by the initial partioning.
 	} while ((pre_Result - result) > epsilon*initial_obj_fun_val);
 	std::cout << std::endl;
@@ -220,7 +220,7 @@ void Kmeans::Initialize_CV(Matrix matrix)
 	}
 	//for (i = 0; i < n_Clusters; i++)
 	//diff[i] = 0.0;
-	std::cout << cluster_quality[0] << " " << cluster_quality[1] << " " << cluster_quality[2] << " " << cluster_quality[4] << " " << std::endl;
+	//std::cout << cluster_quality[0] << " " << cluster_quality[1] << " " << cluster_quality[2] << " " << cluster_quality[4] << " " << std::endl;
 	//A random constant figured out based on cluster_quality
 	initial_obj_fun_val = result = Coherence(n_Clusters);
 	fv_threshold = -1.0*initial_obj_fun_val*delta;
