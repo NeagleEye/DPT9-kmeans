@@ -23,6 +23,11 @@ void kmeansKode()
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
+	for (int i = 0; i < 10; i++)
+	{
+		cout << matrix.GetVal(i, 0) << " " << matrix.GetVal(i, 1) << endl;
+	}
+
 	PrintMatrix(matrix, x, y);
 }
 
@@ -56,7 +61,6 @@ void AMP_TestCode1()
 		std::cout << sum[i] << "\n";
 	}
 }
-
 void AMP_testCode2()
 {
 	std::vector<int> data0(1024, 1);
@@ -151,7 +155,7 @@ void exampleCode()
 
 int main()
 {
-	AMP_testCode3();
-	//kmeansKode();
+	//AMP_testCode3();
+	kmeansKode();
 	return 0;
 }

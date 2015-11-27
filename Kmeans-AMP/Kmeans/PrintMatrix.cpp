@@ -12,18 +12,24 @@ void PrintMatrix(Matrix input, int MAX_X, int MAX_Y)
 	int test = input.GetColumns();
 	int position = 0;
 	bool noMorePoints = false;
-	for (int i = 0; i < MAX_Y; i++)
+	int XPosition, YPosition;
+	for (int i = 0; i <= MAX_X; i++)
 	{
-		for (int j = 0; j < MAX_X; j++)
+		for (int j = 0; j <= MAX_Y; j++)
 		{
 			if (!noMorePoints)
 			{
-				int XPosition = input.GetVal(0, position);
-				int YPosition = input.GetVal(1, position);
+				XPosition = input.GetVal(position, 0);
+				YPosition = input.GetVal(position, 1);
 				if (XPosition == i && YPosition == j)
 				{
 					myfile << "1 ";
 					position++;
+
+					while (XPosition == input.GetVal(position, 0) && YPosition == input.GetVal(position, 1))
+					{
+						position++;
+					}
 				}
 				else
 				{

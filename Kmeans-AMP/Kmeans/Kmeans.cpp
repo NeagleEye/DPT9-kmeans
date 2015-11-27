@@ -7,9 +7,7 @@
 Kmeans::Kmeans(int n_cluster, int clusterinit[], int columns, int rows)
 {
 	//Initialize values
-	sim_Mat = new double*[n_cluster];
-	for (int i = 0; i < n_cluster; i++)
-		sim_Mat[i] = new double[columns];
+	sim_Mat = new double[n_cluster*columns];
 	normal_ConceptVectors = new double[n_cluster];
 	n_Clusters = n_cluster;
 	cluster = clusterinit;
@@ -41,7 +39,6 @@ Kmeans::~Kmeans()
 	int i;
 	for (i = 0; i < n_Clusters; i++)
 	{
-		delete[] sim_Mat[i];
 		delete[] concept_Vectors[i];
 		delete[] old_ConceptVectors[i];
 	}
@@ -115,16 +112,17 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 				{
 					for (i = 0; i < col; i++)
 					{
-						sim_Mat[cluster[i]][i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]);
+						//sim_Mat[cluster[i]][i]
+						sim_Mat[cluster[i] * n_Clusters + i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]);
 					}
 				}
 				else
 					for (i = 0; i < n_Clusters; i++)
-						matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
+						matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
 			}
 			else
 				for (i = 0; i < n_Clusters; i++)//returning distance between the squared average vector and the average vector to sim_mat
-					matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
+					matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
 
 			//initialize cluster_quality
 			for (i = 0; i<n_Clusters; i++)
@@ -165,7 +163,7 @@ int Kmeans::InitAssignCluster(Matrix matrix)
 
 	for (i = 0; i < col; i++)
 	{
-		temp_sim = sim_Mat[cluster[i]][i];
+		temp_sim = sim_Mat[cluster[i] * n_Clusters + i];
 		temp_Cluster_ID = cluster[i];
 
 		for (j = 0; j < n_Clusters; j++)
@@ -173,9 +171,9 @@ int Kmeans::InitAssignCluster(Matrix matrix)
 			if (j != cluster[i])
 			{
 				//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
-				if (sim_Mat[j][i] < temp_sim)
+				if (sim_Mat[j* n_Clusters + i] < temp_sim)
 				{
-					temp_sim = sim_Mat[j][i];
+					temp_sim = sim_Mat[j* n_Clusters + i];
 					temp_Cluster_ID = j;
 				}
 			}
@@ -183,7 +181,7 @@ int Kmeans::InitAssignCluster(Matrix matrix)
 		if (temp_Cluster_ID != cluster[i])
 		{
 			cluster[i] = temp_Cluster_ID;
-			sim_Mat[cluster[i]][i] = temp_sim;
+			sim_Mat[cluster[i] * n_Clusters + i] = temp_sim;
 			changed++;
 		}
 	}
@@ -224,7 +222,7 @@ void Kmeans::Initialize_CV(Matrix matrix)
 
 	//calculate the distance from the concept vectors to the normal vectors
 	for (i = 0; i < n_Clusters; i++)
-		matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
+		matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
 
 	//Init Cluster quality which is the distance between normal CV and concept_vectors
 	for (i = 0; i<n_Clusters; i++)
@@ -232,7 +230,7 @@ void Kmeans::Initialize_CV(Matrix matrix)
 	k = 0;
 	for (i = 0; i < col; i++)
 	{
-		cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
+		cluster_quality[cluster[i]] += sim_Mat[cluster[i]* n_Clusters + i]; //sim_Mat[cluster[i]][i]
 	}
 	//for (i = 0; i < n_Clusters; i++)
 	//diff[i] = 0.0;
@@ -269,7 +267,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 	//get normal CV
 	normal_ConceptVectors[0] = matrix.GetNorm(cv[0]);
 	//Euclidean Distance between the vectors
-	matrix.Euc_Dis(concept_Vectors[0], normal_ConceptVectors[0], sim_Mat[0]);
+	matrix.Euc_Dis(concept_Vectors[0], normal_ConceptVectors[0], sim_Mat, 0, n_Clusters);
 
 	//Create random concept vectors (roughly in the same area)
 	for (i = 1; i<n_Clusters; i++)
@@ -282,7 +280,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 			{
 				cos_sum = 0.0;
 				for (k = 0; k<i; k++)
-					cos_sum += sim_Mat[k][j];
+					cos_sum += sim_Mat[k * n_Clusters + j];
 				if (cos_sum > min)
 				{
 					min = cos_sum;
@@ -294,7 +292,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 		matrix.Ith_Add_CV(cv[i], concept_Vectors[i]);
 
 		normal_ConceptVectors[i] = matrix.GetNorm(cv[i]);
-		matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat[i]);
+		matrix.Euc_Dis(concept_Vectors[i], normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
 		mark[cv[i]] = true;
 	}
 
@@ -362,30 +360,14 @@ void Kmeans::GPU_update_cluster_quality()
 	
 	// there was no because could obvious way to work on a 2d array without it before being a 1d array we had to make a flat version
 	// of sim_Mat to use en the AMP parallel_for_each one could make the sim_Mat flat in the entire code
-	std::vector<double> Flat_sim_Mat; 
-	for (int i = 0; i < n_Clusters; i++)
-	{
-		for (int x = 0; x < col; x++)
-		{
-			Flat_sim_Mat.push_back(sim_Mat[i][x]);
-		}
-	}
 
 	concurrency::array_view<double, 1> GPU_cluster_quality(n_Clusters, cluster_quality);
 	concurrency::array_view<int, 1> GPU_cluster(col, cluster);
-	concurrency::array_view<double, 1> GPU_sim_Mat((col*row), Flat_sim_Mat);
+	concurrency::array_view<double, 1> GPU_sim_Mat((col*row), sim_Mat);
 	int temp_n_Clusters = n_Clusters; // for some reason can parallel_for_each not the reach n_Clusters and therefore a temp variable here have been made
 	concurrency::parallel_for_each(GPU_cluster.extent, [=](concurrency::index<1> idx) restrict(amp)
 	{
 		GPU_cluster_quality[GPU_cluster[idx]] += GPU_sim_Mat[GPU_cluster[idx] * temp_n_Clusters + idx];
 	});
-	int counter = 0;
-	for (int i = 0; i < n_Clusters; i++)
-	{
-		for (int x = 0; x < col; x++)
-		{
-			sim_Mat[i][x] = GPU_sim_Mat[counter];
-			counter++;
-		}
-	}
+	sim_Mat = GPU_sim_Mat.data();
 }

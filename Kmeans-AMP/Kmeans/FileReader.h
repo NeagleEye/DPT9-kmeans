@@ -7,7 +7,7 @@
 struct Mat
 {
 	int n_row, n_col;
-	double **val;
+	double *val;
 };
 
 Matrix GetVector();
