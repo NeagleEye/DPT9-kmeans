@@ -245,7 +245,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 	do{
 		cv[0] = rand_gen.GetUniformInt(col);
 	} while (mark[cv[0]]);
-	cv[0] = 2480;
+
 	//add current concept_vector to the original vector
 	matrix.Ith_Add_CV(cv[0], concept_Vectors[0]);
 	mark[cv[0]] = true;
