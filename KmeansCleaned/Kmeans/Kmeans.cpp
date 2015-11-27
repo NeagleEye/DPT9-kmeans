@@ -134,12 +134,11 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 		}//epsilon is a user defined function default set to 0.0001, initial_obj_fun_val is defined by the initial partioning.
 	} while ((pre_Result - result) > epsilon*initial_obj_fun_val);
 	std::cout << std::endl;
-
+	matrix.PassCluster(cluster);
 	// we retrieve the euclidean distance of concept_vectors and the normal_ConceptVectors
 	/***********************
 	 * if was removed here *
 	 ***********************/
-
 }
 
 /***************************

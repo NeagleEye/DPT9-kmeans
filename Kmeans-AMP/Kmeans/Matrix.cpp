@@ -12,6 +12,7 @@ Matrix::Matrix(int row, int col, double *val)
 	n_row_elements = row;
 	n_col = col;
 	value = val;
+	cluster.resize(col);
 }
 
 Matrix::~Matrix()
@@ -118,4 +119,11 @@ but the abstract class defition needs the parameter of 'norm_x'
 		result += GPU_normalVector[idx] + norm_x;
 		GPU_result[(cluster*n_clusters)+ idx] = result;
 	});
+}
+void Matrix::PassCluster(int clus[])
+{
+	for (int i = 0; i < GetColumns(); i++)
+	{
+		setClusterID(i, clus[i]);
+	}
 }

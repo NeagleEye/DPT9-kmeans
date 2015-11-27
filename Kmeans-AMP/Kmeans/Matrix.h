@@ -34,6 +34,10 @@ public:
 	void Euc_Dis(double *x, double norm_x, double *result);
 	void Matrix::Euc_Dis(double *x, double norm_x, double *result, int cluster, int n_clusters);
 	double GetNorm(int i) { return normalVector[i]; }
+	
+	int getClusterID(int position){ return cluster[position]; };
+	void setClusterID(int position, int value){ cluster[position] = value; }
+	void PassCluster(int *clus);
 private:
 	//Row elements = value value value (3d or) value value (2d can be xd)
 	//Column how many datasets is in the dataset
@@ -41,4 +45,5 @@ private:
 	//**value = value[row][col] (rowth element, column)
 	//normalVector = normalvector over row of elements (vector)
 	double *value, *normalVector;
+	std::vector<int> cluster;
 };

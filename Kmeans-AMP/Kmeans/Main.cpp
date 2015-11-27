@@ -23,12 +23,13 @@ void kmeansKode()
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < matrix.GetColumns(); i++)
 	{
 		cout << matrix.GetVal(i, 0) << " " << matrix.GetVal(i, 1) << endl;
 	}
 
 	PrintMatrix(matrix, x, y);
+	PrintMatrix_With_Cluster(matrix, x, y);
 }
 
 

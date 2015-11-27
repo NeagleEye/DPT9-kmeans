@@ -130,12 +130,12 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 			//update the cluster quality based on the collected simulation matrix
 			// CPU version
-			//for (i = 0; i < col; i++)
-			//{
-			//	cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
-			//}
+			for (i = 0; i < col; i++)
+			{
+				cluster_quality[cluster[i]] += sim_Mat[(cluster[i] * n_Clusters) + i];
+			}
 			// GPU version
-			GPU_update_cluster_quality();
+			//GPU_update_cluster_quality();
 
 			//Coherence is based on the total cluster quality
 			result = Coherence(n_Clusters);
@@ -149,7 +149,7 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 	/***********************
 	 * if was removed here *
 	 ***********************/
-
+	matrix.PassCluster(cluster);
 }
 
 /***************************
