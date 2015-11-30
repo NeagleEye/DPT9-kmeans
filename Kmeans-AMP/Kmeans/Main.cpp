@@ -12,7 +12,7 @@ void kmeansKode()
 	int *cluster, n_clusters = 4;
 	int x = 0, y = 0;
 	Matrix matrix = GetVector(x, y);
-
+	int test = matrix.GetColumns();
 	cluster = new int[matrix.GetColumns()];
 	//Initialize Euclidean kmeans
 	Kmeans k(n_clusters, cluster, matrix.GetColumns(), matrix.GetRows());

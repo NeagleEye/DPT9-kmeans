@@ -113,7 +113,7 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 					for (i = 0; i < col; i++)
 					{
 						//sim_Mat[cluster[i]][i]
-						sim_Mat[cluster[i] * n_Clusters + i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]);
+						sim_Mat[(cluster[i] * n_Clusters) + i] = matrix.Euc_Dis(concept_Vectors[cluster[i]], i, normal_ConceptVectors[cluster[i]]);
 					}
 				}
 				else
@@ -130,12 +130,12 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 			//update the cluster quality based on the collected simulation matrix
 			// CPU version
-			for (i = 0; i < col; i++)
+			/*for (i = 0; i < col; i++)
 			{
 				cluster_quality[cluster[i]] += sim_Mat[(cluster[i] * n_Clusters) + i];
-			}
+			}*/
 			// GPU version
-			//GPU_update_cluster_quality();
+			GPU_update_cluster_quality();
 
 			//Coherence is based on the total cluster quality
 			result = Coherence(n_Clusters);
@@ -367,7 +367,7 @@ void Kmeans::GPU_update_cluster_quality()
 	int temp_n_Clusters = n_Clusters; // for some reason can parallel_for_each not the reach n_Clusters and therefore a temp variable here have been made
 	concurrency::parallel_for_each(GPU_cluster.extent, [=](concurrency::index<1> idx) restrict(amp)
 	{
-		GPU_cluster_quality[GPU_cluster[idx]] += GPU_sim_Mat[GPU_cluster[idx] * temp_n_Clusters + idx];
+		GPU_cluster_quality[GPU_cluster[idx]] += GPU_sim_Mat[(GPU_cluster[idx] * temp_n_Clusters) + idx];
 	});
-	sim_Mat = GPU_sim_Mat.data();
+	cluster_quality = GPU_cluster_quality.data();
 }
