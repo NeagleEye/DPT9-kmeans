@@ -817,8 +817,9 @@ Since the matrix is dense, not taking advantage of
 but the abstract class defition needs the parameter of 'norm_x'
 */
 {
-	for (int i = 0; i < n_col; i++)
-		result[i] = Euc_Dis(x, i, norm_x);
+	GPU_Euc_Dis(x, norm_x, result);
+	//for (int i = 0; i < n_col; i++)
+	//	result[i] = Euc_Dis(x, i, norm_x);
 }
 
 void Matrix::GPU_Euc_Dis(double *x, double norm_x, double *result)
@@ -831,13 +832,11 @@ void Matrix::GPU_Euc_Dis(double *x, double norm_x, double *result)
 	cudaMalloc((void**)&dev_X, n_col * sizeof(double));
 	cudaMalloc((void**)&dev_Result, n_col * sizeof(double));
 	cudaMalloc((void**)&dev_normalVector, n_col * sizeof(double));
-	//size_t pitches[n_row_elements];
-	//cudaMallocPitch((void**)dev_value, , n_col * sizeof(double), n_row_elements);
-	//cudaMalloc((void**)&dev_value, n_row_elements * n_col * sizeof(double));
+	cudaMalloc((void**)&dev_value, n_col* n_row_elements * sizeof(double));
 
-	cudaMemcpy(dev_X, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice); // NIELS: IKKE HELT SIKKER PÅ STØRRELSERNE HER
-	cudaMemcpy(dev_normalVector, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice); // NIELS: IKKE HELT SIKKER PÅ STØRRELSERNE HER
-	//cudaMemcpy(dev_value, value, n_row_elements * n_col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_X, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_normalVector, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_value, value, n_col* n_row_elements * sizeof(double), cudaMemcpyHostToDevice);
 
 	int numberOfBlocks = ceil(n_col / MaxThreadsPerBlock); // ceil is there just to be save
 
@@ -1549,8 +1548,8 @@ void kmeanscode()
 int main()
 {
 	//testcode();
-	testcode2();
-	//kmeanscode();
+	//testcode2();
+	kmeanscode();
 
 	int fail = 0;
     return 0;
