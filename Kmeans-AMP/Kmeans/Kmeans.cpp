@@ -130,10 +130,10 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 			//update the cluster quality based on the collected simulation matrix
 			// CPU version
-			/*for (i = 0; i < col; i++)
-			{
-				cluster_quality[cluster[i]] += sim_Mat[(cluster[i] * n_Clusters) + i];
-			}*/
+			//for (i = 0; i < col; i++)
+			//{
+			//	cluster_quality[cluster[i]] += sim_Mat[(cluster[i] * n_Clusters) + i];
+			//}
 			// GPU version
 			GPU_update_cluster_quality();
 
@@ -143,6 +143,7 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 			std::cout << "E";
 		}//epsilon is a user defined function default set to 0.0001, initial_obj_fun_val is defined by the initial partioning.
 	} while ((pre_Result - result) > epsilon*initial_obj_fun_val);
+	n_Iters;
 	std::cout << std::endl;
 
 	// we retrieve the euclidean distance of concept_vectors and the normal_ConceptVectors
@@ -353,10 +354,25 @@ double Kmeans::Coherence(int n_clus)
 
 void Kmeans::GPU_update_cluster_quality()
 {
-	/*for (i = 0; i < col; i++)
+	/*for (int i = 0; i < col; i++)
 	{
-		cluster_quality[cluster[i]] += sim_Mat[cluster[i]][i];
+		cluster_quality[cluster[i]] += sim_Mat[(cluster[i] * n_Clusters) + i];
 	}*/
+	
+	//foreach version
+	/*std::vector<int> temp;
+	for (int i = 0; i < col; i++)
+	{
+		temp.push_back(cluster[i]);
+	}
+	int counter = 0;
+	for each (int var in temp)
+	{
+		cluster_quality[var] += sim_Mat[(var * n_Clusters) + counter];
+		counter++;
+	}*/
+
+	
 	
 	// there was no because could obvious way to work on a 2d array without it before being a 1d array we had to make a flat version
 	// of sim_Mat to use en the AMP parallel_for_each one could make the sim_Mat flat in the entire code
@@ -364,10 +380,14 @@ void Kmeans::GPU_update_cluster_quality()
 	concurrency::array_view<double, 1> GPU_cluster_quality(n_Clusters, cluster_quality);
 	concurrency::array_view<int, 1> GPU_cluster(col, cluster);
 	concurrency::array_view<double, 1> GPU_sim_Mat((col*row), sim_Mat);
+
 	int temp_n_Clusters = n_Clusters; // for some reason can parallel_for_each not the reach n_Clusters and therefore a temp variable here have been made
 	concurrency::parallel_for_each(GPU_cluster.extent, [=](concurrency::index<1> idx) restrict(amp)
 	{
 		GPU_cluster_quality[GPU_cluster[idx]] += GPU_sim_Mat[(GPU_cluster[idx] * temp_n_Clusters) + idx];
 	});
+	GPU_cluster.synchronize();
 	cluster_quality = GPU_cluster_quality.data();
+
+	int lol = 0;
 }

@@ -23,10 +23,6 @@ void kmeansKode()
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
-	for (int i = 0; i < matrix.GetColumns(); i++)
-	{
-		cout << matrix.GetVal(i, 0) << " " << matrix.GetVal(i, 1) << endl;
-	}
 
 	PrintMatrix(matrix, x, y);
 	PrintMatrix_With_Cluster(matrix, x, y);
@@ -78,13 +74,15 @@ void AMP_testCode2()
 	{
 		av2[idx] = av0[idx] + av1[idx];
 	});
-
-
+	for (int i = 0; i < 1024; i++) {
+		std::cout << av2[i] << "\n";
+	}
+	int i = 0;
 }
 void AMP_testCode3()
 {
 	int *test;
-	std::vector<int> data0(1024, 1);
+	std::vector<int> data0(100, 1);
 	int n = 2;
 	concurrency::array_view<int, 1> av0(data0.size(), data0);
 	concurrency::parallel_for_each(av0.extent, [=](concurrency::index<1> idx) restrict(amp)
@@ -93,43 +91,55 @@ void AMP_testCode3()
 	});
 	test = av0.data();
 
-	for (int i = 0; i < 1024; i++) {
+	int lol = 0;
+	for (int i = 0; i < 100; i++) {
 		std::cout << test[i] << "\n";
 	}
 }
 void AMP_testCode4()
 {
-	int length = 4, depths = 5;
-	int **BigOne, *littleOne;
-	vector<int>largeOne;
-
-	BigOne = new int*[length];
-	for (int i = 0; i < length; i++)
+	int size = 10;
+	std::vector<int> tester1, tester2;
+	for (size_t i = 0; i < size; i++)
 	{
-		littleOne = new int[depths];
-		for (int x = 0; x < depths; x++)
-		{
-			littleOne[x] = i + x;
-		}
-		BigOne[i] = littleOne;
+		tester1.push_back(i);
+		tester2.push_back(-1);
 	}
+	concurrency::array_view<int, 1> GPU_tester1(size, tester1);
+	concurrency::array_view<int, 1> GPU_tester2(size, tester2);
 
-	for (int i = 0; i < length; i++)
-	{
-		for (int x = 0; x < depths; x++)
-		{
-			cout << "(" << i << "," << x << ")= " << BigOne[i][x] << endl;
-		}
-	}
 
-	for (int i = 0; i < length; i++)
+	concurrency::parallel_for_each(GPU_tester2.extent, [=](concurrency::index<1> idx) restrict(amp)
 	{
-		for (int x = 0; x < depths; x++)
-		{
-			largeOne.push_back(BigOne[i][x]);
-		}
+		GPU_tester2[idx] = GPU_tester1[idx];
+	});
+	GPU_tester2.synchronize();
+	int lol = 0;
+	for (int i = 0; i < size; i++) {
+		std::cout << GPU_tester2[i] << "\n";
 	}
+	lol = 0;
 }
+void normal_testCode4()
+{
+	int size = 10;
+	std::vector<int> tester1, tester2;
+	for (size_t i = 0; i < size; i++)
+	{
+		tester1.push_back(i);
+		tester2.push_back(-1);
+	}
+	int counter = 0;
+	for each (int var in tester1)
+	{
+		tester2[counter] = var;
+		counter++;
+	}
+	
+	int lol = 0;
+}
+
+
 void exampleCode()
 {
 	int aMatrix[] = { 1, 4, 2, 5, 3, 6 };
@@ -156,7 +166,10 @@ void exampleCode()
 
 int main()
 {
+	//AMP_testCode2();
 	//AMP_testCode3();
+	//normal_testCode4();
+	//AMP_testCode4();
 	kmeansKode();
 	return 0;
 }

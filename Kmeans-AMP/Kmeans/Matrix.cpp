@@ -89,6 +89,8 @@ but the abstract class defition needs the parameter of 'norm_x'
 		result += GPU_normalVector[idx] + norm_x;
 		GPU_result[idx] = result;
 	});
+	GPU_result.synchronize();
+	result = GPU_result.data();
 }
 void Matrix::Euc_Dis(double *x, double norm_x, double *result, int cluster, int n_clusters)
 /* Given squared L2-norms of the vecs and x, norm[i] and norm_x,
@@ -119,6 +121,8 @@ but the abstract class defition needs the parameter of 'norm_x'
 		result += GPU_normalVector[idx] + norm_x;
 		GPU_result[(cluster*n_clusters)+ idx] = result;
 	});
+	GPU_result.synchronize();
+	result = GPU_result.data();
 }
 void Matrix::PassCluster(int clus[])
 {
