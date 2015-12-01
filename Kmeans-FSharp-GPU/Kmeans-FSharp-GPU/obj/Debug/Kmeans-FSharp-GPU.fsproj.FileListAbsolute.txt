@@ -1,0 +1,8 @@
+E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\bin\Debug\Kmeans_FSharp_GPU.exe.config
+E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\bin\Debug\Kmeans_FSharp_GPU.XML
+E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\bin\Debug\Kmeans_FSharp_GPU.exe
+E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\bin\Debug\Kmeans_FSharp_GPU.pdb
+E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\bin\Debug\FSharp.Core.dll
+E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\bin\Debug\FSharp.Core.xml
+E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\obj\Debug\Kmeans_FSharp_GPU.exe
+E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\obj\Debug\Kmeans_FSharp_GPU.pdb
