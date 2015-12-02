@@ -32,3 +32,4 @@ E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\bin\Debug\
 E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\bin\Debug\FSharpx.Core.xml
 E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\bin\Debug\FSharpx.Text.StructuredFormat.pdb
 E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\bin\Debug\FSharpx.Text.StructuredFormat.xml
+E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-FSharp-GPU\Kmeans-FSharp-GPU\obj\Debug\Kmeans-FSharp-GPU.fsprojResolveAssemblyReference.cache

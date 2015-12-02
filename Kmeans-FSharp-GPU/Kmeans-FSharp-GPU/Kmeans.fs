@@ -73,6 +73,7 @@ type InitAssignCluster() =
         //Count the changed easier to do on CPU than on GPU
         for i in 0 .. col-1 do
             changed <- changed + changedArray.[i]
+            changedArray.[i] <- 0
         //printfn "Result= %A" resultMat
     
         commandQueue.Dispose()
