@@ -22,11 +22,16 @@ public:
 	getval(0,1) = 3
 	getval(1,1) = 4
 
+	(0,0) = 1
+	(0,1) = 3
+	(1,0) = 2
+	(1,1) = 4
+
 	mtxfiles values (beyond first line)
 	1 2
 	3 4
 	*/
-	double GetVal(int i, int j) { return value[i][j]; }
+	double GetVal(int i, int j) { return value[(n_row_elements*j)+i]; } //value[i][j]
 	void Ith_Add_CV(int i, double *CV);
 
 	//Calculate distance
@@ -44,6 +49,6 @@ private:
 	int n_row_elements, n_col;
 	//**value = value[row][col] (rowth element, column)
 	//normalVector = normalvector over row of elements (vector)
-	double **value, *normalVector;
+	double *value, *normalVector;
 	std::vector<int> cluster;
 };

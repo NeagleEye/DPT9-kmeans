@@ -10,7 +10,17 @@ Matrix::Matrix(int row, int col, double **val)
 {
 	n_row_elements = row;
 	n_col = col;
-	value = val;
+
+	std::vector<double> temp;
+
+	for (int i = 0; i < n_col; i++)
+	{
+		for (int j = 0; j < n_row_elements; j++)
+		{
+			temp.push_back(val[j][i]);
+		}
+	}
+	value = temp.data();;
 	cluster.resize(col);
 }
 
@@ -32,14 +42,14 @@ void Matrix::ComputeNormalVector()
 	{
 		normalVector[i] = 0.0;
 		for (int j = 0; j < n_row_elements; j++)
-			normalVector[i] += (value[j][i]) * (value[j][i]);
+			normalVector[i] += ((n_row_elements*i) + j) * ((n_row_elements*i) + j);
 	}
 }
 //add current concept_vector to the original vector
 void Matrix::Ith_Add_CV(int i, double *CV)
 {
 	for (int j = 0; j < n_row_elements; j++)
-		CV[j] += value[j][i];
+		CV[j] += value[(n_row_elements*j) + i]; //value[j][i]
 }
 
 double Matrix::Euc_Dis(double *x, int i, double norm_x)
@@ -51,7 +61,7 @@ Used (x-c)^T (x-c) = x^T x - 2 x^T c + c^T c
 {
 	double result = 0.0;
 	for (int j = 0; j< n_row_elements; j++)
-		result += x[j] * value[j][i];
+		result += x[j] * value[(n_row_elements*j) + i];
 	result *= -2.0;
 	result += normalVector[i] + norm_x;
 	return result;
