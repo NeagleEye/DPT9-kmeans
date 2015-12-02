@@ -130,12 +130,12 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 			//update the cluster quality based on the collected simulation matrix
 			// CPU version
-			//for (i = 0; i < col; i++)
-			//{
-			//	cluster_quality[cluster[i]] += sim_Mat[(cluster[i] * n_Clusters) + i];
-			//}
+			for (i = 0; i < col; i++)
+			{
+				cluster_quality[cluster[i]] += sim_Mat[(cluster[i] * n_Clusters) + i];
+			}
 			// GPU version
-			GPU_update_cluster_quality();
+			//GPU_update_cluster_quality();
 
 			//Coherence is based on the total cluster quality
 			result = Coherence(n_Clusters);
@@ -281,7 +281,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 			{
 				cos_sum = 0.0;
 				for (k = 0; k<i; k++)
-					cos_sum += sim_Mat[k * n_Clusters + j];
+					cos_sum += sim_Mat[j * n_Clusters + k];
 				if (cos_sum > min)
 				{
 					min = cos_sum;
