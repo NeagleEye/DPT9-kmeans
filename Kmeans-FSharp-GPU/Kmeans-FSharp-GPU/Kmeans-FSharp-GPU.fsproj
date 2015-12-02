@@ -13,6 +13,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>Kmeans-FSharp-GPU</Name>
+    <NuGetPackageImportStamp>d99710fc</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -38,8 +39,52 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Brahma">
+      <HintPath>..\packages\Brahma.FSharp.0.3.5.0\lib\net40\Brahma.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Brahma.FSharp.OpenCL.AST">
+      <HintPath>..\packages\Brahma.FSharp.0.3.5.0\lib\net40\Brahma.FSharp.OpenCL.AST.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Brahma.FSharp.OpenCL.Core">
+      <HintPath>..\packages\Brahma.FSharp.0.3.5.0\lib\net40\Brahma.FSharp.OpenCL.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Brahma.FSharp.OpenCL.Extensions">
+      <HintPath>..\packages\Brahma.FSharp.0.3.5.0\lib\net40\Brahma.FSharp.OpenCL.Extensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Brahma.FSharp.OpenCL.Printer">
+      <HintPath>..\packages\Brahma.FSharp.0.3.5.0\lib\net40\Brahma.FSharp.OpenCL.Printer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Brahma.FSharp.OpenCL.Translator">
+      <HintPath>..\packages\Brahma.FSharp.0.3.5.0\lib\net40\Brahma.FSharp.OpenCL.Translator.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Brahma.Helpers">
+      <HintPath>..\packages\Brahma.FSharp.0.3.5.0\lib\net40\Brahma.Helpers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Brahma.OpenCL">
+      <HintPath>..\packages\Brahma.FSharp.0.3.5.0\lib\net40\Brahma.OpenCL.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FSharpx.Core">
+      <HintPath>..\packages\FSharpx.Core.1.8.41\lib\40\FSharpx.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FSharpx.Text.StructuredFormat">
+      <HintPath>..\packages\FSharpx.Text.StructuredFormat.1.8.41\lib\40\FSharpx.Text.StructuredFormat.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="OpenCL.Net">
+      <HintPath>..\packages\OpenCL.Net.2.2.9.0\lib\net40\OpenCL.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -52,6 +97,7 @@
     <Compile Include="Kmeans.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -69,6 +115,13 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="..\packages\OpenCL.Net.2.2.9.0\build\net40\OpenCL.Net.targets" Condition="Exists('..\packages\OpenCL.Net.2.2.9.0\build\net40\OpenCL.Net.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\OpenCL.Net.2.2.9.0\build\net40\OpenCL.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\OpenCL.Net.2.2.9.0\build\net40\OpenCL.Net.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

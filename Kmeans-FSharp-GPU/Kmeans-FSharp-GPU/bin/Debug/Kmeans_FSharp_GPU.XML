@@ -92,6 +92,42 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
 <member name="T:Kmeans.Computations">
 
 </member>
@@ -129,6 +165,9 @@
 
 </member>
 <member name="T:Kmeans.InitKmeans">
+
+</member>
+<member name="">
 
 </member>
 <member name="">
