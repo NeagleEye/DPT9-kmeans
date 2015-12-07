@@ -31,7 +31,7 @@ public:
 
 	//Calculate distance
 	double Euc_Dis(double *x, int i, double norm_x, int cluster);
-	void Euc_Dis(double *x, double norm_x, double *result, int cluster);
+	void Euc_Dis(double *x, double norm_x, double *result, int cluster, int n_cluster);
 	double GetNorm(int i) { return normalVector[i]; }
 
 	void PassCluster(int *clus);

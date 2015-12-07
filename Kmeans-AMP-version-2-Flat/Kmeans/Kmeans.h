@@ -16,6 +16,8 @@ public:
 	//assign new cluster based on distances.
 	int Assign_Cluster(Matrix matrix);
 	int InitAssignCluster(Matrix matrix);
+	int GPU_InitAssignCluster(Matrix matrix);
+	int CPU_InitAssignCluster(Matrix matrix);
 	//Update the centroids of the clusters
 	void Update_Centroids(Matrix matrix);
 	//seperate the centroids of the concept vectors

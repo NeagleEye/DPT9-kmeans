@@ -5,6 +5,7 @@
 #include <math.h>
 #include <iostream>
 #include <vector>
+#include <amp.h>
 
 Matrix::Matrix(int row, int col, double *val)
 {
@@ -57,7 +58,7 @@ Used (x-c)^T (x-c) = x^T x - 2 x^T c + c^T c
 	return result;
 }
 
-void Matrix::Euc_Dis(double *x, double norm_x, double *result, int cluster)
+void Matrix::Euc_Dis(double *x, double norm_x, double *result, int cluster, int n_cluster)
 /* Given squared L2-norms of the vecs and x, norm[i] and norm_x,
 compute the Euc-dis between each vec in the matrix with x,
 results are stored in array 'result'.
@@ -66,9 +67,31 @@ Since the matrix is dense, not taking advantage of
 but the abstract class defition needs the parameter of 'norm_x'
 */
 {
-	for (int i = 0; i < n_col; i++)
-		result[cluster*n_col+i] = Euc_Dis(x, i, norm_x, cluster);
+	//CPU
+	/*for (int i = 0; i < n_col; i++)
+		result[cluster*n_col+i] = Euc_Dis(x, i, norm_x, cluster);*/
+	//GPU
+	//GPU version
+	concurrency::array_view<double, 1> GPU_x(n_col, x);
+	concurrency::array_view<double, 1> GPU_result(n_cluster*n_col, result);
+	concurrency::array_view<double, 1> GPU_normalVector(n_col, normalVector);
+	concurrency::array_view<double, 1> GPU_value(n_row_elements*n_col, value);
+	int temp_n_row_elements = n_row_elements;
+	int temp_n_col = n_col;
+	concurrency::parallel_for_each(GPU_normalVector.extent, [=](concurrency::index<1> idx) restrict(amp)
+	{
+		double result = 0.0;
+		for (int j = 0; j< temp_n_row_elements; j++)
+			result += GPU_x[cluster*temp_n_row_elements + j] * GPU_value[j*temp_n_col + idx];
+		result *= -2.0;
+		result += GPU_normalVector[idx] + norm_x;
+		GPU_result[cluster*temp_n_col + idx] = result;
+	});
+	GPU_normalVector.synchronize();
+	result = GPU_result.data();
 }
+
+
 
 void Matrix::PassCluster(int clus[])
 {

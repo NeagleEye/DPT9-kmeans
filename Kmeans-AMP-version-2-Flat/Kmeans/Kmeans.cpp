@@ -2,6 +2,7 @@
 #include "MathonVectors.h"
 #include <time.h>
 #include <iostream>
+#include <amp.h>
 
 Kmeans::Kmeans(int n_cluster, int clusterinit[], int columns, int rows)
 {
@@ -98,11 +99,11 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 						sim_Mat[cluster[i]*col+i] = matrix.Euc_Dis(concept_Vectors, i, normal_ConceptVectors[cluster[i]],cluster[i]);
 				else
 					for (i = 0; i < n_Clusters; i++)
-						matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat,i);
+						matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
 			}
 			else
 				for (i = 0; i < n_Clusters; i++)//returning distance between the squared average vector and the average vector to sim_mat
-					matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat,i);
+					matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
 
 			//initialize cluster_quality
 			for (i = 0; i<n_Clusters; i++)
@@ -120,6 +121,7 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 			//std::cout << (pre_Result - result) - (epsilon*initial_obj_fun_val) << std::endl;
 		}//epsilon is a user defined function default set to 0.0001, initial_obj_fun_val is defined by the initial partioning.
 	} while ((pre_Result - result) > epsilon*initial_obj_fun_val);
+	n_Iters;
 	std::cout << std::endl;
 	matrix.PassCluster(cluster);
 	// we retrieve the euclidean distance of concept_vectors and the normal_ConceptVectors
@@ -131,8 +133,12 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 /***************************
  * New init assign cluster *
  ***************************/
-
 int Kmeans::InitAssignCluster(Matrix matrix)
+{
+	return GPU_InitAssignCluster(matrix);
+	//return CPU_InitAssignCluster(matrix);
+}
+int Kmeans::CPU_InitAssignCluster(Matrix matrix)
 {
 	int i, j, changed = 0, temp_Cluster_ID;
 	double temp_sim;
@@ -162,6 +168,58 @@ int Kmeans::InitAssignCluster(Matrix matrix)
 		}
 	}
 	return changed;
+}
+
+int Kmeans::GPU_InitAssignCluster(Matrix matrix)
+{
+	int *changed;
+	changed = new int[col];
+
+	concurrency::array_view<int, 1> GPU_changed(col, changed);
+	concurrency::array_view<double, 1> GPU_sim_Mat(n_Clusters*col, sim_Mat);
+	concurrency::array_view<int, 1> GPU_cluster(col, cluster);
+	int temp_col = col;
+	int temp_n_Clusters = n_Clusters;
+	concurrency::parallel_for_each(GPU_cluster.extent, [=](concurrency::index<1> idx) restrict(amp)
+	{
+		double temp_sim = GPU_sim_Mat[GPU_cluster[idx] * temp_col + idx];
+		int temp_Cluster_ID = GPU_cluster[idx];
+
+		for (int j = 0; j < temp_n_Clusters; j++)
+		{
+			//if point does not belong to cluster do
+			if (j != GPU_cluster[idx])
+			{
+				//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
+				if (GPU_sim_Mat[j*temp_col + idx] < temp_sim)
+				{
+					temp_sim = GPU_sim_Mat[j*temp_col + idx];
+					temp_Cluster_ID = j;
+				}
+			}
+		}
+		//Assign new cluster if closer than previous cluster
+		if (temp_Cluster_ID != GPU_cluster[idx])
+		{
+			GPU_cluster[idx] = temp_Cluster_ID;
+			GPU_sim_Mat[GPU_cluster[idx] * temp_col + idx] = temp_sim;
+			GPU_changed[idx] = 1;
+		}
+		else
+		{
+			GPU_changed[idx] = 0;
+		}
+	});
+	GPU_sim_Mat.synchronize();
+	GPU_changed.synchronize();
+	changed = GPU_changed.data();
+	int result = 0;
+	for (int i = 0; i < col; i++)
+	{
+		result += changed[i];
+	}
+	delete[] changed;
+	return result;
 }
 
 //Initialize the Concept Vectors
@@ -195,7 +253,7 @@ void Kmeans::Initialize_CV(Matrix matrix)
 		normal_ConceptVectors[i] = norm_2(concept_Vectors, row, i);
 	//calculate the distance from the concept vectors to the normal vectors
 	for (i = 0; i < n_Clusters; i++)
-		matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat,i);
+		matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
 
 	//Init Cluster quality which is the distance between normal CV and concept_vectors
 	for (i = 0; i<n_Clusters; i++)
@@ -240,7 +298,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 	//get normal CV
 	normal_ConceptVectors[0] = matrix.GetNorm(cv[0]);
 	//Euclidean Distance between the vectors
-	matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[0], sim_Mat,0);
+	matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[0], sim_Mat, 0, n_Clusters);
 	//Create random concept vectors (roughly in the same area)
 	for (i = 1; i<n_Clusters; i++)
 	{
@@ -264,7 +322,7 @@ void Kmeans::Well_Separated_Centroids(Matrix matrix)
 		matrix.Ith_Add_CV(cv[i], concept_Vectors, i);
 
 		normal_ConceptVectors[i] = matrix.GetNorm(cv[i]);
-		matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat,i);
+		matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
 		mark[cv[i]] = true;
 	}
 
