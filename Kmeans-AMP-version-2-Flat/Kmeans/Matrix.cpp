@@ -80,18 +80,42 @@ but the abstract class defition needs the parameter of 'norm_x'
 	int temp_n_col = n_col;
 	concurrency::parallel_for_each(GPU_normalVector.extent, [=](concurrency::index<1> idx) restrict(amp)
 	{
+		int i = idx[0];
 		double result = 0.0;
 		for (int j = 0; j< temp_n_row_elements; j++)
-			result += GPU_x[cluster*temp_n_row_elements + j] * GPU_value[j*temp_n_col + idx];
+			result += GPU_x[cluster*temp_n_row_elements + j] * GPU_value[j*temp_n_col + i];
 		result *= -2.0;
-		result += GPU_normalVector[idx] + norm_x;
-		GPU_result[cluster*temp_n_col + idx] = result;
+		result += GPU_normalVector[i] + norm_x;
+		GPU_result[cluster*temp_n_col + i] = result;
 	});
 	GPU_normalVector.synchronize();
 	result = GPU_result.data();
 }
 
+void Matrix::Euc_Dis_All(double *x, double norm_x, double *result, int n_cluster)
+{
+	concurrency::array_view<double, 1> GPU_x(n_col, x);
+	concurrency::array_view<double, 1> GPU_result(n_col * n_cluster, result);
+	concurrency::array_view<double, 1> GPU_normalVector(n_col, normalVector);
+	concurrency::array_view<double, 1> GPU_value(n_row_elements*n_col, value);
+	int temp_n_row_elements = n_row_elements;
+	int temp_n_col = n_col;
+	concurrency::parallel_for_each(GPU_result.extent, [=](concurrency::index<1> idx) restrict(amp)
+	{
+		int cluster = idx[0] / temp_n_col;
+		int col_inCluster = idx[0] % temp_n_col;
 
+		double result = 0.0;
+		for (int j = 0; j< temp_n_row_elements; j++)
+			result += GPU_x[cluster*temp_n_row_elements + j] * GPU_value[j*temp_n_col + col_inCluster];
+		result *= -2.0;
+		result += GPU_normalVector[col_inCluster] + norm_x;
+		GPU_result[idx[0]] = result;
+	});
+	GPU_normalVector.synchronize();
+	result = GPU_result.data();
+
+}
 
 void Matrix::PassCluster(int clus[])
 {

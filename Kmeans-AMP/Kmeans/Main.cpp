@@ -139,6 +139,32 @@ void normal_testCode4()
 	int lol = 0;
 }
 
+void AMP_testCode5()
+{
+	int A[] = {1,2,3,4,5,6};
+	int **test;
+	concurrency::array_view<int, 2> a(2,3, A);
+	concurrency::parallel_for_each(
+		// Define the compute domain, which is the set of threads that are created.
+		a.extent,
+		// Define the code to run on each thread on the accelerator.
+		[=](concurrency::index<2> idx) restrict(amp)
+	{
+		int x = idx[0];
+		int y = idx[1];
+		a[x][y] = a[x][y] +1;
+	}
+	);
+	test =  a.data();
+	for (int row = 0; row < 2; row++) {
+		for (int col = 0; col < 3; col++) {
+			//std::cout << productMatrix[row*3 + col] << "  ";
+			std::cout << a(row, col) << "  ";
+		}
+		std::cout << "\n";
+	}
+	int lol = 0;
+}
 
 void exampleCode()
 {
@@ -170,6 +196,7 @@ int main()
 	//AMP_testCode3();
 	//normal_testCode4();
 	//AMP_testCode4();
-	kmeansKode();
+	AMP_testCode5();
+	//kmeansKode();
 	return 0;
 }
