@@ -20,7 +20,7 @@ int MaxThreadsPerBlock = 1024; // in CUDA 1.3 and lower it is 512
 __global__ void GPU_Func_Euc_Dis(double *GPU_x, double norm_x, double *GPU_value, int n_row_elements, double *GPU_normalVector, double *GPU_result, int n_col, int cluster, int n_cluster)
 {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
-	if (i < n_col)
+	if(i < n_col)
 	{
 		double result = 0.0;
 		for (int j = 0; j< n_row_elements; j++)
@@ -35,7 +35,7 @@ __global__ void GPU_Func_Euc_Dis(double *GPU_x, double norm_x, double *GPU_value
 __global__ void GPU_Func_InitAssignCluster(double *GPU_sim_Mat, int *GPU_cluster, int *GPU_changed, int n_Clusters, int n_col)
 {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
-	if (i < n_col)
+	if(i < n_col)
 	{
 		double temp_sim = GPU_sim_Mat[GPU_cluster[i] * n_col + i];
 		int temp_Cluster_ID = GPU_cluster[i];
@@ -179,8 +179,9 @@ but the abstract class defition needs the parameter of 'norm_x'
 }
 void Matrix::Euc_Dis(double *x, double norm_x, double *result, int cluster, int n_cluster)
 {
-	Euc_Dis(x, norm_x, result, cluster);
-	//GPU_Euc_Dis(x, norm_x, result, cluster, n_cluster);
+	//Euc_Dis(x, norm_x, result, cluster);
+	GPU_Euc_Dis(x, norm_x, result, cluster, n_cluster);
+	//std::cout << result[n_col*n_cluster-1] << std::endl;
 }
 
 
@@ -201,11 +202,16 @@ void Matrix::GPU_Euc_Dis(double *x, double norm_x, double *result, int cluster, 
 	cudaMemcpy(GPU_normalVector, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice);
 	cudaMemcpy(GPU_value, value, n_row_elements*n_col * sizeof(double), cudaMemcpyHostToDevice);
 	
-
-	int numberOfBlocks = ceil(n_col / MaxThreadsPerBlock); // ceil is there just to be save
-
-	GPU_Func_Euc_Dis << <numberOfBlocks, MaxThreadsPerBlock >> >(GPU_x, norm_x, GPU_value, n_row_elements, GPU_normalVector, GPU_result, n_col, cluster, n_cluster);
-
+	int threadsPerBlock = 256;
+	int blocksPerGrid =((n_col) + threadsPerBlock - 1) / threadsPerBlock;
+	//Block size may not exceed 65000
+	for(;blocksPerGrid > 65000;)
+	{
+		threadsPerBlock *= 2;
+		blocksPerGrid =((n_col) + threadsPerBlock - 1) / threadsPerBlock;
+	}
+	GPU_Func_Euc_Dis <<< blocksPerGrid, threadsPerBlock >> >(GPU_x, norm_x, GPU_value, n_row_elements, GPU_normalVector, GPU_result, n_col, cluster, n_cluster);
+	
 	cudaMemcpy(result, GPU_result, n_cluster * n_col * sizeof(double), cudaMemcpyDeviceToHost);
 
 	cudaFree(GPU_x);
@@ -904,7 +910,7 @@ private:
 	//col = docs
 	int /*number of clusters*/n_Clusters, col, row,
 		/*indicator of how many elements belong to each cluster*/ *clusterSize,
-		/*pointer to which cluster the column belongs*/*cluster,
+		/*pointer to which cluster the column belongs*/*cluster, *simMatChanged,
 		/*Estimate of how long it will take maximum*/EST_START = 5;
 };
 
@@ -912,6 +918,7 @@ Kmeans::Kmeans(int n_cluster, int clusterinit[], int columns, int rows)
 {
 	//Initialize values
 	sim_Mat = new double[n_cluster*columns];
+	simMatChanged = new int [columns];
 	normal_ConceptVectors = new double[n_cluster];
 	n_Clusters = n_cluster;
 	cluster = clusterinit;
@@ -939,7 +946,7 @@ Kmeans::~Kmeans()
 	delete[] sim_Mat;
 	delete[] concept_Vectors;
 	delete[] old_ConceptVectors;
-
+	delete[] simMatChanged;
 	delete[] cluster_quality;
 	delete[] difference;
 	delete[] clusterSize;
@@ -1034,9 +1041,6 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 	std::cout << std::endl;
 	matrix.PassCluster(cluster);
 	// we retrieve the euclidean distance of concept_vectors and the normal_ConceptVectors
-	/***********************
-	* if was removed here *
-	***********************/
 }
 
 /***************************
@@ -1084,8 +1088,8 @@ int Kmeans::CPU_InitAssignCluster(Matrix matrix)
 
 int Kmeans::GPU_InitAssignCluster(Matrix matrix)
 {
-	int *changed;
-	changed = new int[col];
+	//int *changed;
+	//changed = new int[col];
 
 	double *GPU_sim_Mat;
 	int *GPU_cluster, *GPU_changed;
@@ -1097,19 +1101,29 @@ int Kmeans::GPU_InitAssignCluster(Matrix matrix)
 	cudaMemcpy(GPU_sim_Mat, sim_Mat, n_Clusters*col * sizeof(double), cudaMemcpyHostToDevice);
 	cudaMemcpy(GPU_cluster, cluster, col * sizeof(int), cudaMemcpyHostToDevice);
 
-	int numberOfBlocks = ceil(col / MaxThreadsPerBlock); // ceil is there just to be save
+	//This is creating the error:int numberOfBlocks = ceil(col / MaxThreadsPerBlock); // ceil is there just to be save
+	//this solves the problem as it dynamic changes size based on the size of the number of points.
+	int threadsPerBlock = 256;
+	int blocksPerGrid =((col) + threadsPerBlock - 1) / threadsPerBlock;
+	//Block size may not exceed ~ 65000
+	for(;blocksPerGrid > 65000;)
+	{
+		threadsPerBlock *= 2;
+		blocksPerGrid =((col) + threadsPerBlock - 1) / threadsPerBlock;
+	}
 
-	GPU_Func_InitAssignCluster << <numberOfBlocks, MaxThreadsPerBlock >> >(GPU_sim_Mat, GPU_cluster, GPU_changed, n_Clusters, col);
+	GPU_Func_InitAssignCluster << <blocksPerGrid, threadsPerBlock >> >(GPU_sim_Mat, GPU_cluster, GPU_changed, n_Clusters, col);
 
-	cudaMemcpy(changed, GPU_changed, col * sizeof(int), cudaMemcpyDeviceToHost);
+	cudaMemcpy(simMatChanged, GPU_changed, col * sizeof(int), cudaMemcpyDeviceToHost);
 	cudaMemcpy(sim_Mat, GPU_sim_Mat, n_Clusters*col * sizeof(double), cudaMemcpyDeviceToHost);
+	cudaMemcpy(cluster, GPU_cluster, col * sizeof(int), cudaMemcpyDeviceToHost);
 
 	int result = 0;
 	for (int i = 0; i < col; i++)
 	{
-		result += changed[i];
+		result += simMatChanged[i];
+		simMatChanged[i]=0;
 	}
-	delete[] changed;
 	cudaFree(GPU_sim_Mat);
 	cudaFree(GPU_cluster);
 	cudaFree(GPU_changed);
