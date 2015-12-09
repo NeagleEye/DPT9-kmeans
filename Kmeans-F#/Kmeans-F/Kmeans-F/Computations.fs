@@ -8,29 +8,27 @@ module Computations =
     let NormalVectorFunc (a:double) (b:double) =
         ( a * a ) + ( b * b )
 
-    let AverageVec (vec:Matrix<double>) (clustersize:int) (cluster:int) =
+    let AverageVec (vec:array<double>) (clustersize:int) (cluster:int) =
         for i in 0 .. row-1 do
-            vec.[cluster,i] <- vec.[cluster,i]/(double clustersize)
+            vec.[cluster*row+i] <- vec.[cluster*row+i]/(double clustersize)
 
-    let Norm2 (vec:Matrix<double>) (cluster:int) =
+    let Norm2 (vec:array<double>) (cluster:int) =
         let mutable temp = 0.0
         for i in 0 .. row-1 do
-            temp <- temp+(vec.[cluster,i]*vec.[cluster,i])
+            temp <- temp+(vec.[cluster*row+i]*vec.[cluster*row+i])
         temp
 
-    let normalVector = [for i in 0 .. col-1 -> (NormalVectorFunc value.[0,i] value.[1,i]) ]
+    let normalVector = [for i in 0 .. col-1 -> (NormalVectorFunc value.[0*col+i] value.[1*col+i]) ]
 
-    let ithAddCV (i:int) (CV:Matrix<double>) (k:int) =
+    let ithAddCV (i:int) (CV:array<double>) (k:int) =
         for j in 0 .. (row-1) do
-            CV.[k,j] <- CV.[k,j]+value.[j,i] //return value CV
+            CV.[k*row+j] <- CV.[k*row+j]+value.[j*col+i] //return value CV
 
-    let mutable result = 0.0
-    let mutable resultval = 0.0
     type Update() =
-        member this.Centroid (cv:Matrix<double>, clusterpointer:array<int>) =
+        member this.Centroid (cv:array<double>, clusterpointer:array<int>) =
             for i in 0 .. nCluster-1 do
                 for j in 0 .. row-1 do
-                    cv.[i,j] <- 0.0
+                    cv.[i*row+j] <- 0.0
             for i in 0 .. col-1 do
                 ithAddCV i cv clusterpointer.[i]
 
@@ -41,23 +39,25 @@ module Computations =
                 clustersize.[clusterpointer.[i]] <- clustersize.[clusterpointer.[i]]+1
 
         member this.Coherence (clusterQuality:array<double>) =
-            resultval <- 0.0
+            let mutable resultval = 0.0
             for i in 0 .. nCluster-1 do
                 resultval <- resultval+clusterQuality.[i]
             resultval
 
     type EucDis() =
-        member this.EucDis ( x:Matrix<double>,i:int,norm:double, k:int) =
-            result <- 0.0
+        member this.EucDis ( x:array<double>,i:int,norm:double, k:int) =
+            let mutable result = 0.0;
             for j in 0 .. row-1 do
-                result <- result + (x.[k,j] * value.[j,i])
-            result <- result * -2.0
-            result <- result + normalVector.[i] + norm
-            result//return value
+                result <- result + (x.[k*row+j] * value.[j*col+i]);
+            result <- result * -2.0;
+            result <- result + normalVector.[i] + norm;
+            result;//return value
 
-        member this.EucDis (x:Matrix<double>,norm:double,resultMat:Matrix<double>, j:int) =
+        member this.EucDis (x:array<double>,norm:double,resultMat:array<double>, j:int) =
             for i in 0 .. col-1 do
-                resultMat.[j,i] <- this.EucDis(x,i,norm, j)
+                resultMat.[j*col+i] <- this.EucDis(x,i,norm, j);
+                if i % 1000 = 0 then
+                    printfn "%A" i
         
 
 

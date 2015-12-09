@@ -27,7 +27,7 @@ module MatrixCreator =
 module InitParameters =
     let col = MatrixCreator.col
     let row = MatrixCreator.row
-    let nCluster = 4
+    let nCluster = 9
     let matrix = MatrixCreator.matrix
 
     let (simMat: float32 array) = Array.zeroCreate(nCluster*col)

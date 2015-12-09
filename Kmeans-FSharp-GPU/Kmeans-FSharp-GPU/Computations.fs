@@ -13,7 +13,7 @@ module Computations =
     //Init GPU
     let platformName = "*"
     
-    let localWorkSize = 20   
+    let localWorkSize = 256  
     let deviceType = DeviceType.Default
 
     let provider =
@@ -28,6 +28,7 @@ module Computations =
     let row = Kmeans.InitParameters.row
     let col = Kmeans.InitParameters.col
     let nCluster = Kmeans.InitParameters.nCluster
+
     let NormalVectorFunc (a:float32) (b:float32) =
         ( a * a ) + ( b * b )
 
@@ -47,8 +48,6 @@ module Computations =
         for j in 0 .. (row-1) do
             CV.[k*row+j] <- CV.[k*row+j]+value.[j*col+i] //return value CV
 
-    let mutable result = 0.0f
-    let mutable resultval = 0.0f
     type Update() =
         member this.Centroid (cv:array<float32>, clusterpointer:array<int>) =
             for i in 0 .. nCluster-1 do
@@ -64,14 +63,14 @@ module Computations =
                 clustersize.[clusterpointer.[i]] <- clustersize.[clusterpointer.[i]]+1
 
         member this.Coherence (clusterQuality:array<float32>) =
-            resultval <- 0.0f
+            let mutable resultval = 0.0f
             for i in 0 .. nCluster-1 do
                 resultval <- resultval+clusterQuality.[i]
             resultval
 
     type EucDis() =
         member this.EucDis ( x:array<float32>,i:int,norm:float32, k:int) =
-            result <- 0.0f
+            let mutable result = 0.0f
             for j in 0 .. row-1 do
                 result <- result + (x.[k*row+j] * value.[j*col+i])
             result <- result * -2.0f
