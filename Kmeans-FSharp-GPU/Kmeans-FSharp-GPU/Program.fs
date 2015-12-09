@@ -5,12 +5,22 @@
 *)
 
 [<EntryPoint>]
-let main argv = 
+let main argv =
+
+    let stopWatch = System.Diagnostics.Stopwatch.StartNew()
+    printfn "Watch has Started"
     let simMat2 = Kmeans.InitKmeans.conceptVector
     //now to run the algorithm
+    
     let simMat = Kmeans.KmeansAlg.col
+    let nresult = Kmeans.kMain.nresult
     let rand = Kmeans.InitParameters.number
-    printfn "%A" rand
+    let changed = Kmeans.InitKmeans.clusterpointer
+    
+    printfn "%A" changed
+    stopWatch.Stop()
+    printfn "%f" stopWatch.Elapsed.TotalSeconds
+    //printfn "%A" rand
     //let CQ = Kmeans.Computations.commandQueue
     //let pv = Kmeans.Computations.provider
     //CQ.Dispose()

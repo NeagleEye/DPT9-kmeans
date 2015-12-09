@@ -1,6 +1,5 @@
 ﻿namespace Kmeans
 //module FileReader
-[<CompilationRepresentationAttribute(CompilationRepresentationFlags.ModuleSuffix)>]
 type ReadFile() =
     let file = new System.IO.StreamReader("AllRandom.mtx")
     
