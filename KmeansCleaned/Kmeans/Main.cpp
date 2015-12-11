@@ -3,6 +3,7 @@
 #include <Iostream>
 #include "Kmeans.h"
 #include "PrintMatrix.h"
+#include <chrono>
 
 using namespace std;
 
@@ -18,12 +19,16 @@ int main()
 	//Calculate normal vectors on every column set.
 	matrix.ComputeNormalVector();
 	k.Initialize_CV(matrix);
+	auto start = std::chrono::high_resolution_clock::now();
 	k.Generel_K_Means(matrix);
+	auto finish = std::chrono::high_resolution_clock::now();
+	auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start);
+	cout << "It took: " << milliseconds.count() << endl;
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
-	PrintMatrix(matrix,x,y);
-	PrintMatrix_With_Cluster(matrix, x, y);
+	//PrintMatrix(matrix,x,y);
+	//PrintMatrix_With_Cluster(matrix, x, y);
 
 	return 0;
 }
