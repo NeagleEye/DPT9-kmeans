@@ -31,6 +31,8 @@ module Computations =
 
     let NormalVectorFunc (a:float32) (b:float32) =
         ( a * a ) + ( b * b )
+    let NormalVectorFunc2 (a:float32) =
+        ( a * a )
 
     let AverageVec (vec:array<float32>) (clustersize:int) (cluster:int) =
         for i in 0 .. row-1 do
@@ -42,7 +44,11 @@ module Computations =
             temp <- temp+(vec.[cluster*row+i]*vec.[cluster*row+i])
         temp
 
-    let normalVector = [|for i in 0 .. col-1 -> (NormalVectorFunc value.[0*col+i] value.[1*col+i]) |]
+    //let normalVector = [for i in 0 .. col-1 -> (NormalVectorFunc value.[0*col+i] value.[1*col+i]) ]
+    let (normalVector: float32 array) = Array.zeroCreate(col)
+    for i in 0 .. col-1 do
+        for j in 0 .. row-1 do
+            normalVector.[i] <- normalVector.[i]+ NormalVectorFunc2 value.[j*col+i]
 
     let ithAddCV (i:int) (CV:array<float32>) (k:int) =
         for j in 0 .. (row-1) do

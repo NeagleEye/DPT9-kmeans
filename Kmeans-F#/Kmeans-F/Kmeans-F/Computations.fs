@@ -7,6 +7,8 @@ module Computations =
     let nCluster = Kmeans.InitParameters.nCluster
     let NormalVectorFunc (a:double) (b:double) =
         ( a * a ) + ( b * b )
+    let NormalVectorFunc2 (a:double) =
+        ( a * a )
 
     let AverageVec (vec:array<double>) (clustersize:int) (cluster:int) =
         for i in 0 .. row-1 do
@@ -18,7 +20,11 @@ module Computations =
             temp <- temp+(vec.[cluster*row+i]*vec.[cluster*row+i])
         temp
 
-    let normalVector = [for i in 0 .. col-1 -> (NormalVectorFunc value.[0*col+i] value.[1*col+i]) ]
+    //let normalVector = [for i in 0 .. col-1 -> (NormalVectorFunc value.[0*col+i] value.[1*col+i]) ]
+    let (normalVector: double array) = Array.zeroCreate(col)
+    for i in 0 .. col-1 do
+        for j in 0 .. row-1 do
+            normalVector.[i] <- normalVector.[i]+ NormalVectorFunc2 value.[j*col+i]
 
     let ithAddCV (i:int) (CV:array<double>) (k:int) =
         for j in 0 .. (row-1) do
@@ -56,8 +62,6 @@ module Computations =
         member this.EucDis (x:array<double>,norm:double,resultMat:array<double>, j:int) =
             for i in 0 .. col-1 do
                 resultMat.[j*col+i] <- this.EucDis(x,i,norm, j);
-                if i % 1000 = 0 then
-                    printfn "%A" i
         
 
 

@@ -86,6 +86,9 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
 <member name="T:Kmeans.Computations">
 
 </member>
@@ -180,6 +183,9 @@
 
 </member>
 <member name="T:Kmeans.InitParameters">
+
+</member>
+<member name="">
 
 </member>
 <member name="">

@@ -42,6 +42,7 @@ module WellSeperatedCentroids =
     printfn "eucdis start"
     Kmeans.Computations.EucDis().EucDis(conceptVector, normalCV.[0], simMat, 0)
     printfn "eucdis done"
+    printfn "Centroids start"
     for i in 1 .. nCluster-1 do
         minInd <- 0
         min <- 0.0
@@ -58,7 +59,8 @@ module WellSeperatedCentroids =
         normalCV.[i] <- normalVector.[cv.[i]]
         Kmeans.Computations.EucDis().EucDis(conceptVector, normalCV.[i], simMat, i)
         mark.[cv.[i]] <- true;
-
+    printfn "Centroids done"
+    printfn "Assign start"
     let assign = new InitAssignCluster()
     let changed = assign.AssignCluster(simMat,clusterpointer)
     printfn "%A have changed" changed
@@ -106,7 +108,6 @@ module kMain =
         member this.DoKmeans(conceptVector:array<double>, clusterpointer:array<int>, clustersize:array<int>, nCluster:int, col:int, row:int, normalCV:array<double>, simMat:array<double>, clusterQuality:array<double>, funval:double, result:double, preResult:double, iter:int,oldCV:array<double>,assign:InitAssignCluster,difference:array<double>) = 
             newpreResult <- result
             newiter <- iter+1
-            printfn "%A" newiter 
             if assign.AssignCluster(simMat,clusterpointer) = 0 then
                 newiter<-newiter
             else
@@ -165,6 +166,8 @@ module KmeansAlg =
     let oldCV = Kmeans.InitParameters.oldCV
     let mutable assign = WellSeperatedCentroids.assign
     let difference = Kmeans.InitParameters.difference
+    let stopWatch = System.Diagnostics.Stopwatch.StartNew()
+    printfn "Watch has Started"
     kMain.KmeansInner().DoKmeans(conceptVector, clusterpointer,clustersize,nCluster,col,row,normalCV,simMat,clusterQuality,funval,result,preResult,iter,oldCV,assign,difference)
     result <- kMain.nresult
     iter <- kMain.newiter
@@ -175,5 +178,4 @@ module KmeansAlg =
         result <- kMain.nresult
         iter <- kMain.newiter
         preResult <- kMain.newpreResult
-        printfn "iter : %A" iter 
     printfn "Iterations: %A" iter

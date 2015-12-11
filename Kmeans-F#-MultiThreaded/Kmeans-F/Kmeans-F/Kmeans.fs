@@ -12,17 +12,17 @@ type InitAssignCluster() =
         Parallel.For(0, col-1, fun i ->
             let mutable temp_cluster_ID = 0
             let mutable temp_sim = 0.0f
-            for i in 0 .. col-1 do
-                temp_sim <- simMat.[clusterpointer.[i]*col+i]
-                temp_cluster_ID <- clusterpointer.[i]
-                for j in 0 .. nCluster-1 do
-                    if j <> clusterpointer.[i] && simMat.[j*col+i] < temp_sim then
-                        temp_sim <- simMat.[j*col+i]
-                        temp_cluster_ID <- j
-                if temp_cluster_ID <> clusterpointer.[i] then
-                    clusterpointer.[i]<- temp_cluster_ID
-                    simMat.[clusterpointer.[i]*col+i] <- temp_sim
-                    changedArray.[i] <- changedArray.[i]+1)|>ignore
+            //for i in 0 .. col-1 do
+            temp_sim <- simMat.[clusterpointer.[i]*col+i]
+            temp_cluster_ID <- clusterpointer.[i]
+            for j in 0 .. nCluster-1 do
+                if j <> clusterpointer.[i] && simMat.[j*col+i] < temp_sim then
+                    temp_sim <- simMat.[j*col+i]
+                    temp_cluster_ID <- j
+            if temp_cluster_ID <> clusterpointer.[i] then
+                clusterpointer.[i]<- temp_cluster_ID
+                simMat.[clusterpointer.[i]*col+i] <- temp_sim
+                changedArray.[i] <- changedArray.[i]+1)|>ignore
 
         for i in 0 .. col-1 do
             changed <- changed + changedArray.[i]
@@ -166,6 +166,8 @@ module KmeansAlg =
     let oldCV = Kmeans.InitParameters.oldCV
     let mutable assign = WellSeperatedCentroids.assign
     let difference = Kmeans.InitParameters.difference
+    let stopWatch = System.Diagnostics.Stopwatch.StartNew()
+    printfn "Watch has Started"
     kMain.KmeansInner().DoKmeans(conceptVector, clusterpointer,clustersize,nCluster,col,row,normalCV,simMat,clusterQuality,funval,result,preResult,iter,oldCV,assign,difference)
     result <- kMain.nresult
     iter <- kMain.newiter
