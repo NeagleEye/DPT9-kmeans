@@ -17,4 +17,5 @@ let main argv =
 
     stopWatch.Stop()
     printfn "%f" stopWatch.Elapsed.TotalMilliseconds
+
     0 // return an integer exit code

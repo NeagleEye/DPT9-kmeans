@@ -220,7 +220,7 @@ module KmeansAlg =
     let mutable assign = WellSeperatedCentroids.assign
     let difference = Kmeans.InitParameters.difference
     let stopWatch = System.Diagnostics.Stopwatch.StartNew()
-    printfn "Watch has Started"
+    printfn "Start stopWatch"
     kMain.KmeansInner().DoKmeans(conceptVector, clusterpointer,clustersize,nCluster,col,row,normalCV,simMat,clusterQuality,funval,result,preResult,iter,oldCV,assign,difference)
     result <- kMain.nresult
     iter <- kMain.newiter
