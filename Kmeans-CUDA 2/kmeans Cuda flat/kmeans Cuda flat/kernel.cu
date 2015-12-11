@@ -98,6 +98,7 @@ public:
 	double Euc_Dis(double *x, int i, double norm_x, int cluster);
 	void Euc_Dis(double *x, double norm_x, double *result, int cluster);
 	void Euc_Dis(double *x, double norm_x, double *result, int cluster, int n_cluster);
+	void Euc_Dis(double *x, double *normal_ConceptVectors, double *result, int *cluster, int n_cluster);
 	void GPU_Euc_Dis(double *x, double norm_x, double *result, int cluster, int n_cluster);
 	double GetNorm(int i) { return normalVector[i]; }
 
@@ -184,6 +185,31 @@ void Matrix::Euc_Dis(double *x, double norm_x, double *result, int cluster, int 
 	//std::cout << result[n_col*n_cluster-1] << std::endl;
 }
 
+void Matrix::Euc_Dis(double *x, double *normal_ConceptVectors, double *result, int *cluster, int n_cluster)
+{
+	double *GPU_x;
+	double *GPU_normal_ConceptVectors;
+	double *GPU_result;
+	int    *GPU_cluster;
+	double *GPU_normalVector;
+	double *GPU_value;
+
+	cudaMalloc((void**)&GPU_x                     , n_col * sizeof(double));
+	cudaMalloc((void**)&GPU_normal_ConceptVectors , n_cluster * sizeof(double));
+	cudaMalloc((void**)&GPU_result                , n_cluster*n_col * sizeof(double));
+	cudaMalloc((void**)&GPU_cluster               , n_col * sizeof(int));
+	cudaMalloc((void**)&GPU_normalVector          , n_col * sizeof(double));
+	cudaMalloc((void**)&GPU_value, n_row_elements*n_col * sizeof(double));
+
+	cudaMemcpy(GPU_x, x, n_col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(GPU_normal_ConceptVectors, normal_ConceptVectors, n_cluster * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(GPU_result, result, n_cluster*n_col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(GPU_cluster, result, n_col * sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(GPU_normalVector, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(GPU_value, value, n_row_elements*n_col * sizeof(double), cudaMemcpyHostToDevice);
+
+
+}
 
 void Matrix::GPU_Euc_Dis(double *x, double norm_x, double *result, int cluster, int n_cluster)
 {
@@ -1012,7 +1038,8 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 				//returning distance between the squared average vector and the average vector to sim_mat
 				if (n_Iters > EST_START)
 				for (i = 0; i<col; i++)
-					sim_Mat[cluster[i] * col + i] = matrix.Euc_Dis(concept_Vectors, i, normal_ConceptVectors[cluster[i]], cluster[i]);
+					matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors, sim_Mat, cluster, n_Clusters);
+					//sim_Mat[cluster[i] * col + i] = matrix.Euc_Dis(concept_Vectors, i, normal_ConceptVectors[cluster[i]], cluster[i]);
 				else
 				for (i = 0; i < n_Clusters; i++)
 					matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);

@@ -92,6 +92,36 @@ but the abstract class defition needs the parameter of 'norm_x'
 	result = GPU_result.data();
 }
 
+void Matrix::Euc_Dis(double *x, double *normal_ConceptVectors, double *result, int *cluster, int n_cluster)
+{
+	//for (i = 0; i<col; i++)
+	//	sim_Mat[cluster[i] * col + i] = matrix.Euc_Dis(concept_Vectors, i, normal_ConceptVectors[cluster[i]], cluster[i]);
+
+	concurrency::array_view<double, 1> GPU_x                      (n_col, x);
+	concurrency::array_view<double, 1> GPU_result                 (n_cluster*n_col, result);
+	concurrency::array_view<double, 1> GPU_normal_ConceptVectors  (n_cluster, normal_ConceptVectors);
+	concurrency::array_view<double, 1> GPU_normalVector           (n_col, normalVector);
+	concurrency::array_view<double, 1> GPU_value                  (n_row_elements*n_col, value);
+	concurrency::array_view<int, 1> GPU_cluster                   (n_col, cluster);
+
+	int temp_n_row_elements = n_row_elements;
+	int temp_n_col = n_col;
+	concurrency::parallel_for_each(GPU_cluster.extent, [=](concurrency::index<1> idx) restrict(amp)
+	{
+		int i = idx[0];
+		double result = 0.0;
+		for (int j = 0; j< temp_n_row_elements; j++)
+			result += GPU_x[GPU_cluster[i]*temp_n_row_elements + j] * GPU_value[j*temp_n_col + i];
+		result *= -2.0;
+		result += GPU_normalVector[i] + GPU_normal_ConceptVectors[i];
+		GPU_result[GPU_cluster[i] * temp_n_col + i] = result;
+	});
+	GPU_cluster.synchronize();
+	result = GPU_result.data();
+}
+
+
+
 void Matrix::Euc_Dis_All(double *x, double norm_x, double *result, int n_cluster)
 {
 	concurrency::array_view<double, 1> GPU_x(n_col, x);

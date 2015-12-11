@@ -95,8 +95,9 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 				//returning distance between the squared average vector and the average vector to sim_mat
 				if (n_Iters > EST_START)
-					for (i = 0; i<col; i++)
-						sim_Mat[cluster[i]*col+i] = matrix.Euc_Dis(concept_Vectors, i, normal_ConceptVectors[cluster[i]],cluster[i]);
+					matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors, sim_Mat, cluster, n_Clusters);
+					/*for (i = 0; i<col; i++)
+						sim_Mat[cluster[i]*col+i] = matrix.Euc_Dis(concept_Vectors, i, normal_ConceptVectors[cluster[i]],cluster[i]);*/
 				else
 					for (i = 0; i < n_Clusters; i++)
 						matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
