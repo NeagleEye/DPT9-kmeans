@@ -30,6 +30,21 @@ __global__ void GPU_Func_Euc_Dis(double *GPU_x, double norm_x, double *GPU_value
 		GPU_result[cluster*n_col + i] = result;
 	}
 }
+__global__ void GPU_Func_Euc_Dis_2(double *GPU_result, double *GPU_x, int *GPU_cluster, int n_row_elements, double *GPU_value, double *GPU_normalVector, double *GPU_normal_ConceptVectors, int n_col)
+{
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < n_col)
+	{
+		double result = 0.0;
+		for (int j = 0; j< n_row_elements; j++)
+			result += GPU_x[GPU_cluster[i] * n_row_elements + j] * GPU_value[j*n_col + i];
+		result *= -2.0;
+		result += GPU_normalVector[i] + GPU_normal_ConceptVectors[i];
+		GPU_result[GPU_cluster[i] * n_col + i] = result;
+	}
+
+}
+
 
 
 __global__ void GPU_Func_InitAssignCluster(double *GPU_sim_Mat, int *GPU_cluster, int *GPU_changed, int n_Clusters, int n_col)
@@ -66,6 +81,10 @@ __global__ void GPU_Func_InitAssignCluster(double *GPU_sim_Mat, int *GPU_cluster
 		}
 	}
 }
+
+
+
+
 #pragma endregion
 
 
@@ -199,7 +218,7 @@ void Matrix::Euc_Dis(double *x, double *normal_ConceptVectors, double *result, i
 	cudaMalloc((void**)&GPU_result                , n_cluster*n_col * sizeof(double));
 	cudaMalloc((void**)&GPU_cluster               , n_col * sizeof(int));
 	cudaMalloc((void**)&GPU_normalVector          , n_col * sizeof(double));
-	cudaMalloc((void**)&GPU_value, n_row_elements*n_col * sizeof(double));
+	cudaMalloc((void**)&GPU_value                 , n_row_elements*n_col * sizeof(double));
 
 	cudaMemcpy(GPU_x, x, n_col * sizeof(double), cudaMemcpyHostToDevice);
 	cudaMemcpy(GPU_normal_ConceptVectors, normal_ConceptVectors, n_cluster * sizeof(double), cudaMemcpyHostToDevice);
@@ -208,6 +227,24 @@ void Matrix::Euc_Dis(double *x, double *normal_ConceptVectors, double *result, i
 	cudaMemcpy(GPU_normalVector, normalVector, n_col * sizeof(double), cudaMemcpyHostToDevice);
 	cudaMemcpy(GPU_value, value, n_row_elements*n_col * sizeof(double), cudaMemcpyHostToDevice);
 
+	int threadsPerBlock = 256;
+	int blocksPerGrid = ((n_col)+threadsPerBlock - 1) / threadsPerBlock;
+	//Block size may not exceed 65000
+	for (; blocksPerGrid > 65000;)
+	{
+		threadsPerBlock *= 2;
+		blocksPerGrid = ((n_col)+threadsPerBlock - 1) / threadsPerBlock;
+	}
+	GPU_Func_Euc_Dis_2 << < blocksPerGrid, threadsPerBlock >> >(GPU_result, GPU_x, GPU_cluster, n_row_elements, GPU_value, GPU_normalVector, GPU_normal_ConceptVectors, n_col);
+
+	cudaMemcpy(result, GPU_result, n_cluster * n_col * sizeof(double), cudaMemcpyDeviceToHost);
+
+	cudaFree(GPU_x);
+	cudaFree(GPU_normal_ConceptVectors);
+	cudaFree(GPU_result);
+	cudaFree(GPU_cluster);
+	cudaFree(GPU_normalVector);
+	cudaFree(GPU_value);
 
 }
 
@@ -1037,9 +1074,9 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 
 				//returning distance between the squared average vector and the average vector to sim_mat
 				if (n_Iters > EST_START)
-				for (i = 0; i<col; i++)
 					matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors, sim_Mat, cluster, n_Clusters);
-					//sim_Mat[cluster[i] * col + i] = matrix.Euc_Dis(concept_Vectors, i, normal_ConceptVectors[cluster[i]], cluster[i]);
+				//for (i = 0; i<col; i++)
+				//	sim_Mat[cluster[i] * col + i] = matrix.Euc_Dis(concept_Vectors, i, normal_ConceptVectors[cluster[i]], cluster[i]);
 				else
 				for (i = 0; i < n_Clusters; i++)
 					matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
