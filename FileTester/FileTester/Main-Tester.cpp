@@ -55,7 +55,7 @@ void _tmain(int argc, TCHAR *argv[])
 		else if (k == 2)
 		{
 			NameofProgram = L"Kmeans-Cuda.exe";
-			name = "Kmeans F# single CPU ";
+			name = "Kmeans C++ Cuda ";
 			filename = "Kmeans-Cuda.txt";
 		}
 
