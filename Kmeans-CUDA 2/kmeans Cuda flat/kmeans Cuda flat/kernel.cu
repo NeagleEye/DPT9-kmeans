@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <chrono>
 
 #pragma region const
 int MaxThreadsPerBlock = 1024; // in CUDA 1.3 and lower it is 512
@@ -1521,7 +1522,7 @@ void PrintMatrix_With_Cluster(Matrix input, int MAX_X, int MAX_Y)
 #pragma endregion
 
 #pragma region main
-void kmeansCode(std::string)
+void kmeansCode(std::string s)
 {
 	int *cluster, n_clusters = 9;
 	int x = 0, y = 0;
@@ -1533,11 +1534,11 @@ void kmeansCode(std::string)
 	//Calculate normal vectors on every column set.
 	matrix.ComputeNormalVector();
 	k.Initialize_CV(matrix);
-  auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
 	k.Generel_K_Means(matrix);
-  auto finish = std::chrono::high_resolution_clock::now();
+    auto finish = std::chrono::high_resolution_clock::now();
 	auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start);
-	cout << "It took: " << milliseconds.count() << endl;
+	std::cout << "It took: " << milliseconds.count() << std::endl;
 
 	std::ofstream myfile;
 	myfile.open("Kmeans-Cuda.txt");
@@ -1554,7 +1555,7 @@ void kmeansCode(std::string)
 
 int main(int argc, char** argv)
 {
-  string s = "";
+    std::string s = "";
 	int c = argc;
 	if (argc != 2 && argc != 1)	{s = "AllRandom.mtx";}
 	else{
