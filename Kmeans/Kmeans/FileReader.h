@@ -11,4 +11,4 @@ struct Mat
 };
 
 Matrix GetVector();
-Matrix GetVector(int &x,int &y);
+Matrix GetVector(int &x,int &y, std::string);

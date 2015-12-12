@@ -1,0 +1,9 @@
+\begin{table}[]
+\centering
+\caption{This table shows 10 of the different tests.}
+\label{Tabtests}
+\begin{tabular} {|l|l|l|l|l|l|l|l|l|l|}
+\hline
+Kmeans C++ single CPU & failed \\ \hline
+failed & end{tabular}
+end{table}

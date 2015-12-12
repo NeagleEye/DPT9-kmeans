@@ -3,6 +3,10 @@
     Therefore the Distance calculation is done on the GPU and the Cluster Assign is done on the GPU,
     the rest is done on the CPU and all the initializing.
 *)
+open System.IO
+let addLine (line:string) =     
+    use wr = StreamWriter("Kmeans-FOpenCL.txt", true)
+    wr.WriteLine(line)
 
 [<EntryPoint>]
 let main argv =
@@ -17,5 +21,5 @@ let main argv =
 
     stopWatch.Stop()
     printfn "%f" stopWatch.Elapsed.TotalMilliseconds
-
+    addLine(string stopWatch.Elapsed.TotalMilliseconds)
     0 // return an integer exit code

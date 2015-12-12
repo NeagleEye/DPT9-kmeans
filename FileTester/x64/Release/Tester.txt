@@ -1,0 +1,13 @@
+\begin{table}[]
+\centering
+\caption{This table shows 10 of the different tests.}
+\label{Tabtests}
+\begin{tabular} {|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+Kmeans C++ single CPU 10000 & 10 ms & 13 ms & 11 ms & 9 ms & 12 ms & 7 ms & 7 ms & 6 ms & 7 ms & 8 ms & Average: 9 ms \\ \hline
+Kmeans C++ single CPU 99856 & 82 ms & 106 ms & 87 ms & 77 ms & 90 ms & 90 ms & 90 ms & 91 ms & 123 ms & 128 ms & Average: 96.4 ms \\ \hline
+Kmeans C++ single CPU 1000000 & 744 ms & 716 ms & 763 ms & 1394 ms & 687 ms & 939 ms & 938 ms & 759 ms & 577 ms & 835 ms & Average: 835.2 ms \\ \hline
+Kmeans C++ single CPU 9998244 & 14235 ms & 13579 ms & 13795 ms & 14527 ms & 13483 ms & 10844 ms & 15376 ms & 13480 ms & 12578 ms & 12630 ms & Average: 13452.7 ms \\ \hline
+Kmeans C++ AMP 10000 & 20 ms & 23 ms & 24 ms & 24 ms & 23 ms & 24 ms & 23 ms & 24 ms & 23 ms & 19 ms & Average: 22.7 ms \\ \hline
+Kmeans C++ AMP 99856 & 59 ms & 57 ms & 59 ms & 55 ms & 55 ms & 55 ms & 55 ms & 56 ms & 57 ms & 59 ms & Average: 56.7 ms \\ \hline
+Kmeans C++ AMP 1000000 & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & Average: 0 ms \\ \hline

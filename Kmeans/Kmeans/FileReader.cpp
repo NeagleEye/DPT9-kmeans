@@ -13,14 +13,15 @@
 Matrix GetVector()
 {
 	int a, b;
-	return GetVector(a, b);
+	return GetVector(a, b,"AllRandom.mtx");
 }
 
-Matrix GetVector(int &x, int &y)
+Matrix GetVector(int &x, int &y, std::string s)
 {
+
 	Mat result;
 	std::string line;
-	std::ifstream myfile("AllRandom.mtx");
+	std::ifstream myfile(s);
 	if (myfile.is_open())
 	{
 		//the reader takes the first number and uses as rows >> jump over space, uses next number as column >> jumps over space to next number on next line.

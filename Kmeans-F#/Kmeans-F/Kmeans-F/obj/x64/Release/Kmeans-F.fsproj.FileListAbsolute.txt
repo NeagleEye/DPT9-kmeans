@@ -1,8 +1,0 @@
-E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-F#\Kmeans-F\Kmeans-F\bin\Release\Kmeans_F.exe.config
-E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-F#\Kmeans-F\Kmeans-F\bin\Release\Kmeans_F.XML
-E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-F#\Kmeans-F\Kmeans-F\bin\Release\Kmeans_F.exe
-E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-F#\Kmeans-F\Kmeans-F\bin\Release\Kmeans_F.pdb
-E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-F#\Kmeans-F\Kmeans-F\bin\Release\FSharp.Core.dll
-E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-F#\Kmeans-F\Kmeans-F\bin\Release\FSharp.Core.xml
-E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-F#\Kmeans-F\Kmeans-F\obj\x64\Release\Kmeans_F.exe
-E:\GitHubDPT9\K-means\DPT9-kmeans\Kmeans-F#\Kmeans-F\Kmeans-F\obj\x64\Release\Kmeans_F.pdb

@@ -1362,7 +1362,7 @@ struct Mat
 };
 
 Matrix GetVector();
-Matrix GetVector(int &x, int &y);
+Matrix GetVector(int &x, int &y, std::string);
 /*
 *This should read file that looks like .mtx
 *
@@ -1371,14 +1371,14 @@ Matrix GetVector(int &x, int &y);
 Matrix GetVector()
 {
 	int a, b;
-	return GetVector(a, b);
+	return GetVector(a, b, "AllRandom.mtx");
 }
 
-Matrix GetVector(int &x, int &y)
+Matrix GetVector(int &x, int &y, std::string s)
 {
 	Mat result;
 	std::string line;
-	std::ifstream myfile("AllRandom.mtx");
+	std::ifstream myfile(s);
 	if (myfile.is_open())
 	{
 		//the reader takes the first number and uses as rows >> jump over space, uses next number as column >> jumps over space to next number on next line.
@@ -1521,11 +1521,11 @@ void PrintMatrix_With_Cluster(Matrix input, int MAX_X, int MAX_Y)
 #pragma endregion
 
 #pragma region main
-void kmeansCode()
+void kmeansCode(std::string)
 {
-	int *cluster, n_clusters = 4;
+	int *cluster, n_clusters = 9;
 	int x = 0, y = 0;
-	Matrix matrix = GetVector(x, y);
+	Matrix matrix = GetVector(x, y,s);
 
 	cluster = new int[matrix.GetColumns()];
 	//Initialize Euclidean kmeans
@@ -1533,19 +1533,36 @@ void kmeansCode()
 	//Calculate normal vectors on every column set.
 	matrix.ComputeNormalVector();
 	k.Initialize_CV(matrix);
+  auto start = std::chrono::high_resolution_clock::now();
 	k.Generel_K_Means(matrix);
+  auto finish = std::chrono::high_resolution_clock::now();
+	auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start);
+	cout << "It took: " << milliseconds.count() << endl;
+
+	std::ofstream myfile;
+	myfile.open("Kmeans-Cuda.txt");
+	myfile << milliseconds.count();
+	myfile.close();
 	/*
 	*Printing out the matrix only 2d is available and 2d dataset
 	*/
-	PrintMatrix(matrix, x, y);
-	PrintMatrix_With_Cluster(matrix, x, y);
+	//PrintMatrix(matrix, x, y);
+	//PrintMatrix_With_Cluster(matrix, x, y);
 }
 
 
 
-int main()
+int main(int argc, char** argv)
 {
-	kmeansCode();
+  string s = "";
+	int c = argc;
+	if (argc != 2 && argc != 1)	{s = "AllRandom.mtx";}
+	else{
+		for (int i = 0; i < argc; ++i) {
+			s = argv[i];
+		}
+	}
+	kmeansCode(s);
 	return 0;
 }
 #pragma endregion
