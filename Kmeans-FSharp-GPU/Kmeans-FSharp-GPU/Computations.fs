@@ -13,7 +13,7 @@ module Computations =
     //Init GPU
     let platformName = "*"
     
-    let localWorkSize = 256  
+    let localWorkSize = 16  
     let deviceType = DeviceType.Default
 
     let provider =
