@@ -181,34 +181,34 @@ int Kmeans::GPU_InitAssignCluster(Matrix matrix)
 	concurrency::array_view<int, 1> GPU_cluster(col, cluster);
 	int temp_col = col;
 	int temp_n_Clusters = n_Clusters;
-	concurrency::parallel_for_each(GPU_cluster.extent, [=](concurrency::index<1> idx) restrict(amp)
+	concurrency::parallel_for(0, col, [=](int i) restrict(cpu, amp) //&GPU_sim_Mat, &temp_col, &temp_n_Clusters, &GPU_cluster, &GPU_changed
 	{
-		double temp_sim = GPU_sim_Mat[GPU_cluster[idx] * temp_col + idx];
-		int temp_Cluster_ID = GPU_cluster[idx];
+		double temp_sim = GPU_sim_Mat[GPU_cluster[i] * temp_col + i];
+		int temp_Cluster_ID = GPU_cluster[i];
 
 		for (int j = 0; j < temp_n_Clusters; j++)
 		{
 			//if point does not belong to cluster do
-			if (j != GPU_cluster[idx])
+			if (j != GPU_cluster[i])
 			{
 				//if current placement is furthere away than new possible placement, assign new cluster if new one is closer
-				if (GPU_sim_Mat[j*temp_col + idx] < temp_sim)
+				if (GPU_sim_Mat[j*temp_col + i] < temp_sim)
 				{
-					temp_sim = GPU_sim_Mat[j*temp_col + idx];
+					temp_sim = GPU_sim_Mat[j*temp_col + i];
 					temp_Cluster_ID = j;
 				}
 			}
 		}
 		//Assign new cluster if closer than previous cluster
-		if (temp_Cluster_ID != GPU_cluster[idx])
+		if (temp_Cluster_ID != GPU_cluster[i])
 		{
-			GPU_cluster[idx] = temp_Cluster_ID;
-			GPU_sim_Mat[GPU_cluster[idx] * temp_col + idx] = temp_sim;
-			GPU_changed[idx] = 1;
+			GPU_cluster[i] = temp_Cluster_ID;
+			GPU_sim_Mat[GPU_cluster[i] * temp_col + i] = temp_sim;
+			GPU_changed[i] = 1;
 		}
 		else
 		{
-			GPU_changed[idx] = 0;
+			GPU_changed[i] = 0;
 		}
 	});
 	GPU_sim_Mat.synchronize();

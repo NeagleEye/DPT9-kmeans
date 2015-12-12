@@ -11,3 +11,12 @@ Kmeans C++ single CPU 9998244 & 14235 ms & 13579 ms & 13795 ms & 14527 ms & 1348
 Kmeans C++ AMP 10000 & 20 ms & 23 ms & 24 ms & 24 ms & 23 ms & 24 ms & 23 ms & 24 ms & 23 ms & 19 ms & Average: 22.7 ms \\ \hline
 Kmeans C++ AMP 99856 & 59 ms & 57 ms & 59 ms & 55 ms & 55 ms & 55 ms & 55 ms & 56 ms & 57 ms & 59 ms & Average: 56.7 ms \\ \hline
 Kmeans C++ AMP 1000000 & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & Average: 0 ms \\ \hline
+Kmeans C++ AMP 9998244 & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & f/TO & Average: 0 ms \\ \hline
+Kmeans F# single CPU 10000 & 10.1545 ms & 10.1224 ms & 10.1139 ms & 10.5044 ms & 10.1867 ms & 10.0027 ms & 9.9573 ms & 9.9869 ms & 9.9395 ms & 9.9807 ms & Average: 10.0949 ms \\ \hline
+Kmeans F# single CPU 99856 & 51.6093 ms & 51.5649 ms & 51.8984 ms & 51.5292 ms & 51.5037 ms & 51.6477 ms & 51.4888 ms & 51.6412 ms & 51.5429 ms & 51.652 ms & Average: 51.6078 ms \\ \hline
+Kmeans F# single CPU 1000000 & 511.011 ms & 514.213 ms & 508.598 ms & 511.254 ms & 510.212 ms & 514.424 ms & 515.782 ms & 512.553 ms & 512.433 ms & 509.023 ms & Average: 511.951 ms \\ \hline
+Kmeans F# single CPU 9998244 & 5683 ms & 5697.9 ms & 5683 ms & 5713.47 ms & 5722.55 ms & 5661.17 ms & 5683.28 ms & 5685.78 ms & 5716.1 ms & 5680.17 ms & Average: 5692.64 ms \\ \hline
+Kmeans F# multi CPU 10000 & 9.467 ms & 9.1194 ms & 8.9152 ms & 9.5986 ms & 9.3315 ms & 9.7391 ms & 8.9032 ms & 9.1352 ms & 9.0656 ms & 9.163 ms & Average: 9.24378 ms \\ \hline
+Kmeans F# multi CPU 99856 & 26.8885 ms & 26.9944 ms & 25.7287 ms & 27.7416 ms & 25.7117 ms & 26.6056 ms & 27.098 ms & 25.6491 ms & 26.5029 ms & 25.626 ms & Average: 26.4547 ms \\ \hline
+Kmeans F# multi CPU 1000000 & 218.857 ms & 223.714 ms & 233.078 ms & 219.479 ms & 220.765 ms & 218.5 ms & 224.172 ms & 226.102 ms & 233.994 ms & 221.463 ms & Average: 224.012 ms \\ \hline
+Kmeans F# multi CPU 9998244 & 2524.09 ms & 

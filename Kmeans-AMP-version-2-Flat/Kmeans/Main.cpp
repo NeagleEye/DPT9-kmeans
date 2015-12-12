@@ -11,14 +11,14 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	string s = "";
-	int c = argc;
+	string s = "AllRandom.mtx";
+	/*int c = argc;
 	if (argc != 2 && argc != 1)	{ s = "AllRandom.mtx"; }
 	else{
 		for (int i = 0; i < argc; ++i) {
 			s = argv[i];
 		}
-	}
+	}*/
 
 	int *cluster, n_clusters = 9;
 	int x=0, y=0;
