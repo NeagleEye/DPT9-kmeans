@@ -40,7 +40,7 @@ __global__ void GPU_Func_Euc_Dis_2(double *GPU_result, double *GPU_x, int *GPU_c
 		for (int j = 0; j< n_row_elements; j++)
 			result += GPU_x[GPU_cluster[i] * n_row_elements + j] * GPU_value[j*n_col + i];
 		result *= -2.0;
-		result += GPU_normalVector[i] + GPU_normal_ConceptVectors[i];
+		result += GPU_normalVector[i] + GPU_normal_ConceptVectors[GPU_cluster[i]];
 		GPU_result[GPU_cluster[i] * n_col + i] = result;
 	}
 
