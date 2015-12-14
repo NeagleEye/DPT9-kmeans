@@ -22,6 +22,7 @@
     <ProjectGuid>{D1A686FA-351D-4B9D-96DC-BD1B2E3D114E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Kmeans</RootNamespace>
+    <ProjectName>KmeansCPP-CPU</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -148,7 +149,6 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MathonVectors.cpp" />
     <ClCompile Include="Matrix.cpp" />
-    <ClCompile Include="PrintMatrix.cpp" />
     <ClCompile Include="RandomGenerator.cc" />
   </ItemGroup>
   <ItemGroup>
@@ -156,7 +156,6 @@
     <ClInclude Include="Kmeans.h" />
     <ClInclude Include="MathonVectors.h" />
     <ClInclude Include="Matrix.h" />
-    <ClInclude Include="PrintMatrix.h" />
     <ClInclude Include="RandomGenerator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -75,14 +75,6 @@ module Computations =
             resultval
 
     type EucDis() =
-        member this.EucDis ( x:array<float32>,i:int,norm:float32, k:int) =
-            let mutable result = 0.0f
-            for j in 0 .. row-1 do
-                result <- result + (x.[k*row+j] * value.[j*col+i])
-            result <- result * -2.0f
-            result <- result + normalVector.[i] + norm
-            result//return value
-
         member this.GPUEucDis (x:array<float32>,norm:array<float32>,result:array<float32>, clusterpointer:array<int>) =
             //for i in 0 .. col-1 do
             //    simMat.[clusterpointer.[i]*col+i] <- Kmeans.Computations.EucDis().EucDis(conceptVector,i,normalCV.[clusterpointer.[i]],clusterpointer.[i])
@@ -115,12 +107,7 @@ module Computations =
             commandQueue.Dispose()
             provider.Dispose()
             provider.CloseAllBuffers()
-
-        member this.EucDis (x:array<float32>,norm:float32,resultMat:array<float32>, j:int) =
-            for i in 0 .. col-1 do
-                resultMat.[j*col+i] <- this.EucDis(x,i,norm, j)
-
-        
+   
         //custom made for only two rows atm and runs the calculation pretty fast. perhaps a too small calculation.
         member this.GPUEucDis (x:array<float32>,norm:float32,resultMat:array<float32>, j:int) =
             let commandQueue = new CommandQueue(provider, provider.Devices |> Seq.head) 

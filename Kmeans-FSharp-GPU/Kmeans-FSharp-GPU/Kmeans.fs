@@ -19,24 +19,6 @@ type InitAssignCluster() =
     let deviceType = Kmeans.Computations.deviceType
     let mutable usedGPUFunCounter = Kmeans.Computations.usedGPUFunCounter
 
-
-    member this.AssignCluster (simMat:array<float32>, clusterpointer:array<int>) =
-        let mutable changed = 0
-        let mutable temp_cluster_ID = 0
-        let mutable temp_sim = 0.0f
-        for i in 0 .. col-1 do
-            temp_sim <- simMat.[clusterpointer.[i]*col+i]
-            temp_cluster_ID <- clusterpointer.[i]
-            for j in 0 .. nCluster-1 do
-                if j <> clusterpointer.[i] && simMat.[j*col+i] < temp_sim then
-                    temp_sim <- simMat.[j*col+i]
-                    temp_cluster_ID <- j
-            if temp_cluster_ID <> clusterpointer.[i] then
-                clusterpointer.[i]<- temp_cluster_ID
-                simMat.[clusterpointer.[i]*col+i] <- temp_sim
-                changed <- changed+1
-        changed
-
     member this.GPUAssignCluster (simMat:array<float32>, clusterpointer:array<int>) =
         let mutable changed = 0
         let commandQueue = new CommandQueue(provider, provider.Devices |> Seq.head) 

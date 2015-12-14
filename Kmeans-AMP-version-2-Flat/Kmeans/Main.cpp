@@ -2,7 +2,6 @@
 #include <Vector>
 #include <Iostream>
 #include "Kmeans.h"
-#include "PrintMatrix.h"
 #include <chrono>
 #include <fstream>
 #include <string>
@@ -40,11 +39,6 @@ int main(int argc, char** argv)
 	myfile.open("Kmeans-AMP.txt");
 	myfile << milliseconds.count();
 	myfile.close();
-	/*
-	*Printing out the matrix only 2d is available and 2d dataset
-	*/
-	//PrintMatrix(matrix,x,y);
-	//PrintMatrix_With_Cluster(matrix, x, y);
 
 	return 0;
 }

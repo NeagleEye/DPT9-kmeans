@@ -149,7 +149,6 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MathonVectors.cpp" />
     <ClCompile Include="Matrix.cpp" />
-    <ClCompile Include="PrintMatrix.cpp" />
     <ClCompile Include="RandomGenerator.cc" />
   </ItemGroup>
   <ItemGroup>
@@ -157,7 +156,6 @@
     <ClInclude Include="Kmeans.h" />
     <ClInclude Include="MathonVectors.h" />
     <ClInclude Include="Matrix.h" />
-    <ClInclude Include="PrintMatrix.h" />
     <ClInclude Include="RandomGenerator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
