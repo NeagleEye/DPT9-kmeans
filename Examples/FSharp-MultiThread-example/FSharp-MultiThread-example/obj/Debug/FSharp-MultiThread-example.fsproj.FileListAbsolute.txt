@@ -6,3 +6,11 @@ E:\GitHubDPT9\K-means\DPT9-kmeans\FSharp-MultiThread-example\FSharp-MultiThread-
 E:\GitHubDPT9\K-means\DPT9-kmeans\FSharp-MultiThread-example\FSharp-MultiThread-example\bin\Debug\FSharp.Core.xml
 E:\GitHubDPT9\K-means\DPT9-kmeans\FSharp-MultiThread-example\FSharp-MultiThread-example\obj\Debug\FSharp_MultiThread_example.exe
 E:\GitHubDPT9\K-means\DPT9-kmeans\FSharp-MultiThread-example\FSharp-MultiThread-example\obj\Debug\FSharp_MultiThread_example.pdb
+E:\GitHubDPT9\K-means\DPT9-kmeans\Examples\FSharp-MultiThread-example\FSharp-MultiThread-example\bin\Debug\FSharp_MultiThread_example.XML
+E:\GitHubDPT9\K-means\DPT9-kmeans\Examples\FSharp-MultiThread-example\FSharp-MultiThread-example\obj\Debug\FSharp_MultiThread_example.exe
+E:\GitHubDPT9\K-means\DPT9-kmeans\Examples\FSharp-MultiThread-example\FSharp-MultiThread-example\obj\Debug\FSharp_MultiThread_example.pdb
+E:\GitHubDPT9\K-means\DPT9-kmeans\Examples\FSharp-MultiThread-example\FSharp-MultiThread-example\bin\Debug\FSharp_MultiThread_example.exe.config
+E:\GitHubDPT9\K-means\DPT9-kmeans\Examples\FSharp-MultiThread-example\FSharp-MultiThread-example\bin\Debug\FSharp_MultiThread_example.exe
+E:\GitHubDPT9\K-means\DPT9-kmeans\Examples\FSharp-MultiThread-example\FSharp-MultiThread-example\bin\Debug\FSharp_MultiThread_example.pdb
+E:\GitHubDPT9\K-means\DPT9-kmeans\Examples\FSharp-MultiThread-example\FSharp-MultiThread-example\bin\Debug\FSharp.Core.dll
+E:\GitHubDPT9\K-means\DPT9-kmeans\Examples\FSharp-MultiThread-example\FSharp-MultiThread-example\bin\Debug\FSharp.Core.xml

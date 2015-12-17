@@ -10,9 +10,8 @@ let main argv =
 
     Parallel.For(0,20, fun i ->
         a.[i]<-i*5
-        b.[i]<-i*9)|> ignore
-    printfn "%A" c
-    Parallel.For(0, 20, fun i ->
+        b.[i]<-i*9
         c.[i] <- a.[i] + b.[i])|> ignore
     printfn "%A" c
+
     0 // return an integer exit code
