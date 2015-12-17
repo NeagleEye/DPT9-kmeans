@@ -3,11 +3,11 @@
     (kernel ((x xs) (y ys)) (+ x y)))
   
   (define (bench_length len)
-    (let ((xs (make-vector len 1.0))
-          (ys (make-vector len 1.0)))
-    (sum (add-vectors xs ys))
-		))
+    (let ((xs (iota len))
+          (ys (iota len))) 
+    (println* "The vectors sum:" (add-vectors xs ys)) 
+    0))
     
   (define (main)
-    (bench_length (* 1 20))
+    (bench_length 21)
     0))
