@@ -6,9 +6,9 @@
 #include <string>
 #include <iostream>
 
-__global__ void CUDAadd(int *a, int *b, int *c, int SizeOfArray)
+__global__ void CUDAadd(int *a, int *b, int *c, unsigned int SizeOfArray)
 {
-	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < SizeOfArray)
 	{
 		c[i] = a[i] + b[i];
@@ -22,7 +22,7 @@ int main()
 	int b[SizeOfArray];
 	int c[SizeOfArray] = { 0 };
 
-	for (int i = 0; i < SizeOfArray; i++)
+	for (unsigned int i = 0; i < SizeOfArray; i++)
 	{
 		a[i] = i;
 		b[i] = i*10;
@@ -31,8 +31,6 @@ int main()
 	int *dev_a;
 	int *dev_b;
 	int *dev_c;
-
-	//add(a, b, c, SizeOfArray);
 
 	cudaMalloc((void**)&dev_a, SizeOfArray * sizeof(int));
 	cudaMalloc((void**)&dev_b, SizeOfArray * sizeof(int));
@@ -52,11 +50,11 @@ int main()
 		blocksPerGrid = ((SizeOfArray)+threadsPerBlock - 1) / threadsPerBlock;
 	}
 	//blocksPerGrid, threadsPerBlock
-	CUDAadd << < 1, SizeOfArray >> >(dev_a, dev_b, dev_c, SizeOfArray);
+	CUDAadd << < blocksPerGrid, threadsPerBlock >> >(dev_a, dev_b, dev_c, SizeOfArray);
 	cudaDeviceSynchronize();
 	cudaMemcpy(c, dev_c, SizeOfArray * sizeof(int), cudaMemcpyDeviceToHost);
 
-	for (int i = 0; i < SizeOfArray; i++)
+	for (unsigned int i = 0; i < SizeOfArray; i++)
 	{
 		std::cout << "c: " << c[i] << std::endl;;
 	}
