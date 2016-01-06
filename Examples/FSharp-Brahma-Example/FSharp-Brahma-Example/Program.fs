@@ -7,6 +7,7 @@ open Brahma.FSharp.OpenCL.Extensions
 
 [<EntryPoint>]
 let main argv = 
+    let sizeofarray = 5
     let platformName = "*"
     let localWorkSize = 256 //This is different dependant on Hardware
     let deviceType = DeviceType.Default
@@ -17,13 +18,13 @@ let main argv =
         | ex -> failwith ex.Message
 
     printfn "Using %A" provider 
-    let (a : float32 array) = Array.zeroCreate(20) //Float32 is required for Brahma
-    let (b : float32 array) = Array.zeroCreate(20)
-    let (c : float32 array) = Array.zeroCreate(20)
+    let (a : float32 array) = Array.zeroCreate(sizeofarray) //Float32 is required for Brahma
+    let (b : float32 array) = Array.zeroCreate(sizeofarray)
+    let (c : float32 array) = Array.zeroCreate(sizeofarray)
 
-    for i in 0 .. 19 do
-        a.[i] <- (float32 i)*(float32 5)
-        b.[i] <- (float32 i)*(float32 9)
+    for i in 0 .. sizeofarray-1 do
+        a.[i] <- (float32 i)
+        b.[i] <- (float32 i)*(float32 10)
 
     let commandQueue = new CommandQueue(provider, provider.Devices |> Seq.head) 
     let command = 
@@ -33,7 +34,7 @@ let main argv =
             c.[id]<- a.[id]+b.[id]
         @>
     let kernel, kernelPrepare, kernelRun = provider.Compile command
-    let d = new _1D(20,localWorkSize)    
+    let d = new _1D(sizeofarray,localWorkSize)    
     kernelPrepare d a b c //Give information to the command.
     let go () =
         let _ = commandQueue.Add(kernelRun())//Run the commnad.

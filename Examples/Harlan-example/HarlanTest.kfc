@@ -2,12 +2,13 @@
   (define (add-vectors xs ys)
     (kernel ((x xs) (y ys)) (+ x y)))
   
-  (define (bench_length len)
+  (define (AddVec len)
     (let ((xs (iota len))
-          (ys (iota len))) 
+          (ys (iota len)))
+    (for(i 0 5)(set! (vector-ref ys i) (* i 10)) )
     (println* "The vectors sum:" (add-vectors xs ys)) 
     0))
     
   (define (main)
-    (bench_length 21)
+    (AddVec 5)
     0))

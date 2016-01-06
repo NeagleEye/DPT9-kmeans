@@ -2,11 +2,16 @@
 
 int main()
 {
-	int a[20],b[20],c[20];
-	for (int i = 0; i < 20; i++)
+	int const sizeofarray = 5;
+	int a[sizeofarray], b[sizeofarray], c[sizeofarray];
+	for (int i = 0; i < sizeofarray; i++)
 	{
-		a[i] = i * 5;
-		b[i] = i * 9;
+		a[i] = i;
+		b[i] = i * 10;
+	}
+
+	for (int i = 0; i < sizeofarray; i++)
+	{
 		c[i] = a[i] + b[i];
 		std::cout << c[i] << std::endl;
 	}

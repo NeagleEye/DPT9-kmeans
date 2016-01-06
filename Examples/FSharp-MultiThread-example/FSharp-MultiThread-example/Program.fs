@@ -1,16 +1,18 @@
 ﻿open System.Threading.Tasks
 
 [<EntryPoint>]
-let main argv = 
-    printfn "%A" argv
+let main argv =
+    let sizeofarray = 5
 
-    let a = Array.zeroCreate(20)
-    let b = Array.zeroCreate(20)
-    let c = Array.zeroCreate(20)
+    let a = Array.zeroCreate(sizeofarray)
+    let b = Array.zeroCreate(sizeofarray)
+    let c = Array.zeroCreate(sizeofarray)
 
-    Parallel.For(0,20, fun i ->
-        a.[i]<-i*5
-        b.[i]<-i*9
+    Parallel.For(0,sizeofarray, fun i ->
+        a.[i]<-i
+        b.[i]<-i*10)|> ignore
+    
+    Parallel.For(0,sizeofarray, fun i ->
         c.[i] <- a.[i] + b.[i])|> ignore
     printfn "%A" c
 
