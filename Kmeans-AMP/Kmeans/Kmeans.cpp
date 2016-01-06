@@ -1,3 +1,10 @@
+/*   We have based our code on original code from Yuqiang Guan and 
+     the original source code of the program is released under the GNU Public License (GPL)
+     from:
+     http://www.dataminingresearch.com/index.php/2010/06/gmeans-clustering-software-compatible-with-gcc-4/
+     Implementation of Euclidean K-means 
+     Copyright (c) 2003, Yuqiang Guan
+*/
 #include "Kmeans.h"
 #include "MathonVectors.h"
 #include <time.h>

@@ -1,4 +1,10 @@
-﻿namespace Kmeans
+﻿(*   This Code is inspired by Yuqiang Guan and 
+     the original source code of the program is released under the GNU Public License (GPL)
+     from:
+     http://www.dataminingresearch.com/index.php/2010/06/gmeans-clustering-software-compatible-with-gcc-4/
+     Copyright (c) 2003, Yuqiang Guan
+*)
+namespace Kmeans
 //Placeholder for now
 module Computations =
     let value = Kmeans.InitParameters.matrix
