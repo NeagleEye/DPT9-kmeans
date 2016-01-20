@@ -40,7 +40,7 @@ public:
 	double Euc_Dis(double *x, int i, double norm_x, int cluster);
 	void Euc_Dis(double *x, double norm_x, double *result, int cluster, int n_cluster);
 	void Euc_Dis(double *x, double *normal_ConceptVectors, double *result, int *cluster, int n_cluster);
-	void Euc_Dis_All(double *x, double norm_x, double *result, int n_cluster);
+	void Euc_Dis_All(double *x, double *norm_x, double *result, int n_cluster);
 	double GetNorm(int i) { return normalVector[i]; }
 
 	void PassCluster(int *clus);

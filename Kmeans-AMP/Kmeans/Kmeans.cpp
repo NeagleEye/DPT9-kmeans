@@ -103,15 +103,17 @@ void Kmeans::Generel_K_Means(Matrix matrix)
 				//returning distance between the squared average vector and the average vector to sim_mat
 				if (n_Iters > EST_START)
 					matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors, sim_Mat, cluster, n_Clusters);
-					/*for (i = 0; i<col; i++)
-						sim_Mat[cluster[i]*col+i] = matrix.Euc_Dis(concept_Vectors, i, normal_ConceptVectors[cluster[i]],cluster[i]);*/
+				/*for (i = 0; i<col; i++)
+					sim_Mat[cluster[i]*col+i] = matrix.Euc_Dis(concept_Vectors, i, normal_ConceptVectors[cluster[i]],cluster[i]);*/
 				else
-					for (i = 0; i < n_Clusters; i++)
-						matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
+					matrix.Euc_Dis_All(concept_Vectors, normal_ConceptVectors, sim_Mat, n_Clusters);
+					/*for (i = 0; i < n_Clusters; i++)
+						matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);*/
 			}
 			else
-				for (i = 0; i < n_Clusters; i++)//returning distance between the squared average vector and the average vector to sim_mat
-					matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
+				matrix.Euc_Dis_All(concept_Vectors, normal_ConceptVectors, sim_Mat, n_Clusters);
+				//for (i = 0; i < n_Clusters; i++)//returning distance between the squared average vector and the average vector to sim_mat
+				//	matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
 
 			//initialize cluster_quality
 			for (i = 0; i<n_Clusters; i++)
@@ -260,8 +262,9 @@ void Kmeans::Initialize_CV(Matrix matrix)
 	for (i = 0; i < n_Clusters; i++)
 		normal_ConceptVectors[i] = norm_2(concept_Vectors, row, i);
 	//calculate the distance from the concept vectors to the normal vectors
-	for (i = 0; i < n_Clusters; i++)
-		matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);
+	matrix.Euc_Dis_All(concept_Vectors, normal_ConceptVectors, sim_Mat, n_Clusters);
+	/*for (i = 0; i < n_Clusters; i++)
+		matrix.Euc_Dis(concept_Vectors, normal_ConceptVectors[i], sim_Mat, i, n_Clusters);*/
 
 	//Init Cluster quality which is the distance between normal CV and concept_vectors
 	for (i = 0; i<n_Clusters; i++)
